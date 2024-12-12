@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Go Mind</string>
+    <string name="home_menu">Главная</string>
+    <string name="quiz_menu">Викторина</string>
+    <string name="profile_menu">Профиль</string>
+
+    <string-array name="colors">
+        <item>#01874B</item>
+        <item>#85BC30</item>
+        <item>#2D9CC2</item>
+        <item>#72324D</item>
+    </string-array>
+
+
+</resources>

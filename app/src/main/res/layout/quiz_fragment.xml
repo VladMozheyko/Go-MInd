@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/quiz_background">
+
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:id="@+id/top"
+        android:src="@drawable/header"
+        />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/add"
+        android:layout_below="@id/top"
+        android:layout_above="@id/txt_question"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:layout_width="300dp"
+        android:layout_height="250dp"
+        android:id="@+id/txt_question"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:textColor="@color/black"
+        android:padding="10dp"
+        android:text="Самая длинная река в мире?"
+        android:textStyle="italic"
+        android:gravity="center"
+        android:background="@drawable/border_inside" />
+
+    <GridLayout
+        android:layout_width="360dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txt_question"
+        android:id="@+id/variant_buttons"
+        android:layout_marginTop="10dp"
+        android:rowCount="2"
+        android:columnCount="2"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="true">
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        style="@style/CustomButton"
+        android:layout_row="0"
+        android:layout_column="0"
+        android:layout_columnWeight="1"
+        android:background="@drawable/rounded_button"
+        android:layout_gravity="fill_horizontal"
+        android:text="Кнопка 1" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_row="0"
+        android:layout_column="1"
+        android:layout_columnWeight="1"
+        android:background="@drawable/rounded_button"
+        android:layout_gravity="fill_horizontal"
+        android:text="Кнопка 2" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_row="1"
+        android:layout_column="0"
+        android:background="@drawable/rounded_button"
+        android:layout_columnWeight="1"
+        android:layout_gravity="fill_horizontal"
+        android:text="Кнопка 3" />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_row="1"
+        android:layout_column="1"
+        android:layout_columnWeight="1"
+        android:layout_gravity="fill_horizontal"
+        android:background="@drawable/rounded_button"
+        android:text="Кнопка 4" />
+
+</GridLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:layout_below="@+id/variant_buttons"
+        android:id="@+id/site_id"
+        android:layout_height="48dp"
+        android:layout_width="360dp"
+        android:layout_centerHorizontal="true"
+        android:text="Ответить"
+        android:background="@drawable/rounded_button_orange"
+        app:iconTintMode="multiply"
+        app:backgroundTint="@null"
+        android:textSize="19sp"
+        android:textAlignment="center"
+        android:textFontWeight="900"/>
+
+</RelativeLayout>
