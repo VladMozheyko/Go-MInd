@@ -1,6 +1,5 @@
 package com.example.gomind.fragments;
 
-import android.media.FaceDetector;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,20 +10,12 @@ import androidx.fragment.app.Fragment;
 import com.example.gomind.Auction;
 import com.example.gomind.R;
 
-import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.gomind.adapters.AuctionAdapter;
 import com.example.gomind.api.QuestionAPI;
 import com.example.gomind.api.RetrofitClient;
@@ -49,7 +40,7 @@ public class AuctionFragment extends Fragment {
         View view = inflater.inflate(R.layout.auction_fragment, container, false);
 
         // Инициализация RecyclerView
-        recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView = view.findViewById(R.id.question_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Инициализация адаптера

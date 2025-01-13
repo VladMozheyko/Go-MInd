@@ -1,6 +1,5 @@
 package com.example.gomind.fragments;
 
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,12 +22,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class BalanceFragment extends Fragment {
+public class BuypearsFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.balance_fragment, container, false);
+        View view = inflater.inflate(R.layout.buypears_fragment, container, false);
 
         // Загружаем баланс пользователя
         fetchUserBalance(view);
@@ -71,4 +70,3 @@ public class BalanceFragment extends Fragment {
         });
     }
 }
-

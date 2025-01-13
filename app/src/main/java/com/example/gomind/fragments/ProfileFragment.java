@@ -41,6 +41,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
     private final QuestionAPI questionAPI = RetrofitClient.getInstance(getActivity()).getQuestionAPI();
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
+    MaterialButton buypearsBtn;
+    MaterialButton balanceBtn;
     MaterialButton addImageBtn;
     MaterialButton auctionBtn;
 
@@ -56,9 +58,13 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
 
         addImageBtn = view.findViewById(R.id.add_image_btn);
         auctionBtn = view.findViewById(R.id.auction_btn);
+        balanceBtn = view.findViewById(R.id.money);
+        buypearsBtn = view.findViewById(R.id.byu_fruits);
 
         addImageBtn.setOnClickListener(this);
         auctionBtn.setOnClickListener(this);
+        balanceBtn.setOnClickListener(this);
+        buypearsBtn.setOnClickListener(this);
 
         getProfile();
 
@@ -153,13 +159,19 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
             transaction.replace(R.id.main_container, auctionFragment);
             transaction.addToBackStack(null);
             transaction.commit();
-        }  else if (id == R.id.variant_buttons) {
+        }  else if (id == R.id.money) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             Fragment balanceFragment = new BalanceFragment();
             transaction.replace(R.id.main_container, balanceFragment);
             transaction.addToBackStack(null);
             transaction.commit();
-    }
+    }else if (id == R.id.byu_fruits) {
+            FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            Fragment  buypearsFragment = new BuypearsFragment();
+            transaction.replace(R.id.main_container, buypearsFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();}
     }
 }

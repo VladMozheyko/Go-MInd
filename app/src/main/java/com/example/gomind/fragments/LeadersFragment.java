@@ -77,7 +77,7 @@ public class LeadersFragment extends Fragment {
                 Log.d("Ошибка ", " " + id);
             }
         });
-        RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
+        RecyclerView recyclerView = view.findViewById(R.id.question_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
 

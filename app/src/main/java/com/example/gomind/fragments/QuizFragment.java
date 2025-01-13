@@ -1,9 +1,5 @@
 package com.example.gomind.fragments;
 
-import android.graphics.BlurMaskFilter;
-import android.graphics.RenderEffect;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,26 +8,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.gomind.Question;
-import com.example.gomind.QuizResponse;
 import com.example.gomind.R;
-import com.example.gomind.RemainingTimeResponse;
 import com.example.gomind.SharedPrefManager;
+import com.example.gomind.adapters.AnswersAdapter;
 import com.example.gomind.api.QuestionAPI;
 import com.example.gomind.api.RetrofitClient;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,86 +37,48 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class QuizFragment extends Fragment implements View.OnClickListener {
+public class QuizFragment extends Fragment implements View.OnClickListener{
 
+    private RecyclerView recyclerView;
+    private AnswersAdapter answersAdapter;
+    private List<String> answersList = new ArrayList<>();
+    private Question question;
+    private int selectedAnswerId = -1; // ID выбранного ответа
     private TextView txtQuestion;
-    private Button btn1;
-    private Button btn2;
-    private Button btn3;
-    private Button btn4;
     private Button answerBtn;
-
     private ImageView imgAds;
-    int answer = 0;
-    boolean isAnswered;
-    ArrayList<Button> buttons = new ArrayList<>();
-
     private TextView remainingTimeTextView;
-
     private TextView txtPoints;
     private ScheduledExecutorService scheduler;
     private final QuestionAPI questionAPI = RetrofitClient.getInstance(getActivity()).getQuestionAPI();
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
-    Question question;
-    int id = 0;
+    private int id = 0;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.quiz_fragment, container, false);
 
+        txtQuestion = view.findViewById(R.id.txt_question);
+        imgAds = view.findViewById(R.id.img_add);
         remainingTimeTextView = view.findViewById(R.id.txt_time);
         txtPoints = view.findViewById(R.id.txt_points);
-        imgAds = view.findViewById(R.id.img_add);
-
-        txtQuestion = view.findViewById(R.id.txt_question);
-        btn1 = view.findViewById(R.id.button1);
-        btn2 = view.findViewById(R.id.button2);
-        btn3 = view.findViewById(R.id.button3);
-        btn4 = view.findViewById(R.id.button4);
-        buttons.add(btn1);
-        buttons.add(btn2);
-        buttons.add(btn3);
-        buttons.add(btn4);
         answerBtn = view.findViewById(R.id.answer_btn);
-        btn1.setOnClickListener(this::onClick);
-        btn2.setOnClickListener(this::onClick);
-        btn3.setOnClickListener(this::onClick);
-        btn4.setOnClickListener(this::onClick);
-        answerBtn.setOnClickListener(this::onClick);
+        recyclerView = view.findViewById(R.id.question_list);
 
-        Call<Integer> call = questionAPI.getAdvertisementsByCost("jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getAccessToken() +
-                "; refresh-jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getRefreshToken());
-        call.enqueue(new Callback<Integer>() {
-            @Override
-            public void onResponse(Call<Integer> call, Response<Integer> response) {
 
-                if(response.body() != null) {
-                    id = response.body();
-                    Log.d("Ид ", " " + id);
-                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + id).into(imgAds);
-                }
-                else {
-                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + 4).into(imgAds);
-                }
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity())); // 2 столбца для вариантов
 
-            }
+        answerBtn.setOnClickListener(v -> submitAnswer()); // Обработчик нажатия кнопки отправки
 
-            @Override
-            public void onFailure(Call<Integer> call, Throwable t) {
-                t.printStackTrace();
-                Log.d("Ошибка ", " " + id);
-            }
-        });
-
-        getQuestion();
         getPoints();
+        getAdvertisements();
+        getQuestion(); // Получаем первый вопрос
 
         return view;
     }
 
     private void getPoints() {
-
         Call<String> call = questionAPI.getPoints("jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getAccessToken() +
                 "; refresh-jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getRefreshToken());
         call.enqueue(new Callback<String>() {
@@ -128,7 +87,6 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
                 String points = response.body();
                 Log.d("Баллы: ", points);
                 mainThreadHandler.post(() -> txtPoints.setText(points));
-
             }
 
             @Override
@@ -138,63 +96,127 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
         });
     }
 
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if(id == R.id.button1){
-            answer = 1;
-            setAnsweredBackground(v);
-
-        }
-        else if(id == R.id.button2){
-            answer = 2;
-            setAnsweredBackground(v);
-
-        }
-        else if(id == R.id.button3){
-            answer = 3;
-            setAnsweredBackground(v);
-
-        }
-        else if(id == R.id.button4){
-            answer = 4;
-            setAnsweredBackground(v);
-
-        }
-        else if(id == R.id.answer_btn){
-            resetBackground();
-            sendAnswer();
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            getQuestion();
-            getPoints();
-        }
-
-    }
-
-    private void sendAnswer() {
-
-        Call<Void> call = questionAPI.submitAnswer("jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getAccessToken() +
-                "; refresh-jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getRefreshToken(), question.getId(), answer);
-
-        // Выполнение запроса в фоновом потоке (например, в AsyncTask или отдельном потоке)
-        new Thread(() -> {
-            try {
-                Response<Void> response = call.execute();
-                if (response.isSuccessful()) {
-                    System.out.println("Ответ успешно отправлен!");
+    private void getAdvertisements() {
+        Call<Integer> call = questionAPI.getAdvertisementsByCost("jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getAccessToken() +
+                "; refresh-jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getRefreshToken());
+        call.enqueue(new Callback<Integer>() {
+            @Override
+            public void onResponse(Call<Integer> call, Response<Integer> response) {
+                if (response.body() != null) {
+                    id = response.body();
+                    Log.d("Ид ", " " + id);
+                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + id).into(imgAds);
                 } else {
-                    System.out.println("Ошибка: " + response.code());
+                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + 4).into(imgAds);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-        }).start();
+
+            @Override
+            public void onFailure(Call<Integer> call, Throwable t) {
+                t.printStackTrace();
+                Log.d("Ошибка ", " " + id);
+            }
+        });
     }
 
+    private void getQuestion() {
+        Call<Question> call = questionAPI.getRandomQuestion();
+        call.enqueue(new Callback<Question>() {
+            @Override
+            public void onResponse(Call<Question> call, Response<Question> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    question = response.body();
+                    txtQuestion.setText(question.getText());
+
+                    answersList.clear();
+                    answersList.add(question.getOptionA());
+                    answersList.add(question.getOptionB());
+                    answersList.add(question.getOptionC());
+                    answersList.add(question.getOptionD());
+
+
+
+                    AnswersAdapter.AnswerClickListener clickListener = new
+                            AnswersAdapter.AnswerClickListener() {
+                        @Override
+                        public void onClickListener(int answerId) {
+
+                            selectedAnswerId = answerId;
+                        }
+                    };
+                    answersAdapter = new AnswersAdapter(answersList, clickListener);
+                    recyclerView.setAdapter(answersAdapter);
+                } else {
+                    Log.e("Quiz", "Ошибка получения данных: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Question> call, Throwable t) {
+                Log.e("Quiz", "Ошибка: " + t.getMessage());
+            }
+        });
+    }
+
+    private void onAnswerSelected(int position, int selectedItemIndex) {
+
+        // Убираем выделение с других кнопок
+        for (int i = 0; i < recyclerView.getChildCount(); i++) {
+            View child = recyclerView.getChildAt(i);
+
+        }
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+
+        for (int i = 0; i < layoutManager.getChildCount(); i++) {
+            View childItem = layoutManager.getChildAt(i);
+            MaterialButton answerButton = childItem.findViewById(R.id.btn_long_answer);
+            if(position == selectedItemIndex){
+                answerButton.setBackgroundResource(R.drawable.auth_button);
+            }
+            else {
+                answerButton.setBackgroundResource(R.drawable.border_inside);
+            }
+        }
+
+//        view.setBackgroundResource(R.drawable.auth_button);
+//        // Сохраняем ID выбранного ответа
+//        selectedAnswerId = (int) view.getTag(); // Сохраняем тег кнопки как ID ответа
+//        Log.d("Ответ id: " , " " + selectedAnswerId);
+    }
+
+    private void submitAnswer() {
+        if (selectedAnswerId == -1) {
+            return; // Если ответ не выбран, ничего не делаем
+        }
+
+        // Отправляем выбранный ответ
+        Call<Void> call = questionAPI.submitAnswer("jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getAccessToken() +
+                "; refresh-jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getRefreshToken(), question.getId(), selectedAnswerId);
+
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Quiz", "Ответ успешно отправлен!");
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    getPoints(); // Обновляем баллы после отправки ответа
+                    getQuestion(); // Получаем новый вопрос
+                } else {
+                    Log.e("Quiz", "Ошибка при отправке ответа");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("Quiz", "Ошибка: " + t.getMessage());
+            }
+        });
+    }
 
     @Override
     public void onResume() {
@@ -215,22 +237,17 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
             call.enqueue(new Callback<String>() {
                 @Override
                 public void onResponse(Call<String> call, Response<String> response) {
-
-                        String remainingTime = response.body();
-                        mainThreadHandler.post(() -> remainingTimeTextView.setText(remainingTime));
-
+                    String remainingTime = response.body();
+                    mainThreadHandler.post(() -> remainingTimeTextView.setText(remainingTime));
                 }
 
                 @Override
                 public void onFailure(Call<String> call, Throwable t) {
                     Log.d("Ошибка времени", " ");
                     mainThreadHandler.post(() -> remainingTimeTextView.setText("Ошибка: " + t.getMessage()));
-
                 }
             });
         };
-
-        // Запускаем задачу каждую секунду
         scheduler.scheduleAtFixedRate(task, 0, 1, TimeUnit.SECONDS);
     }
 
@@ -240,79 +257,28 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    public void getQuestion() {
-        QuestionAPI quizApi = RetrofitClient.getInstance(getActivity()).getQuestionAPI();
+    @Override
+    public void onClick(View v) {
+        for (int i = 0; i < recyclerView.getChildCount(); i++) {
+            View child = recyclerView.getChildAt(i);
 
-        // Запрос к API
-        Call<Question> call = quizApi.getRandomQuestion();
-        call.enqueue(new Callback<Question>() {
-            @Override
-            public void onResponse(Call<Question> call, Response<Question> response) {
-
-                if (response.isSuccessful() && response.body() != null) {
-                    question = response.body();
-
-
-                    // Используем данные вопроса
-                    txtQuestion.setText(question.getText());
-                    btn1.setText(question.getOptionA());
-                    btn2.setText(question.getOptionB());
-                    btn3.setText(question.getOptionC());
-                    btn4.setText(question.getOptionD());
-
-                } else {
-                    Log.e("Quiz", "Ошибка получения данных: " + response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Question> call, Throwable t) {
-                Log.e("Quiz", "Ошибка: " + t.getMessage());
-            }
-        });
-    }
-
-
-
-    private void resetBackground() {
-        Drawable oldDraw = getResources().getDrawable(R.drawable.border_inside);
-        for (int i = 0; i < buttons.size(); i++) {
-            buttons.get(i).setBackground(oldDraw);
         }
-    }
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
 
-    private void setAnsweredBackground(View view) {
-        Drawable drawable = getResources().getDrawable(R.drawable.auth_button);
-        Drawable oldDraw = getResources().getDrawable(R.drawable.border_inside);
-        view.setBackground(drawable);
-        for (int i = 0; i < buttons.size(); i++) {
-            if(!buttons.get(i).equals(view)){
-                buttons.get(i).setBackground(oldDraw);
-            }
-        }
+//        for (int i = 0; i < layoutManager.getChildCount(); i++) {
+//            View childItem = layoutManager.getChildAt(i);
+//            MaterialButton answerButton = childItem.findViewById(R.id.btn_long_answer);
+//            if(position == selectedItemIndex){
+//                answerButton.setBackgroundResource(R.drawable.auth_button);
+//            }
+//            else {
+//                answerButton.setBackgroundResource(R.drawable.border_inside);
+//            }
+//        }
+//
+//        view.setBackgroundResource(R.drawable.auth_button);
+//        // Сохраняем ID выбранного ответа
+//        selectedAnswerId = (int) view.getTag(); // Сохраняем тег кнопки как ID ответа
+//        Log.d("Ответ id: " , " " + selectedAnswerId);
     }
-//    public void getAds(){
-////    Call<ResponseBody> call = quizService.getAdvertisementMaxCostFile();
-////        call.enqueue(new Callback<ResponseBody>() {
-////        @Override
-////        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-////            if (response.isSuccessful() && response.body() != null) {
-////                // Сохраняем файл
-////                boolean isSaved = saveToFile(response.body(), "advertisement_max_cost_file.txt");
-////                if (isSaved) {
-////                    System.out.println("Файл успешно сохранён!");
-////                } else {
-////                    System.out.println("Ошибка при сохранении файла.");
-////                }
-////            } else {
-////                System.out.println("Ошибка: " + response.code());
-////            }
-////        }
-////
-////        @Override
-////        public void onFailure(Call<ResponseBody> call, Throwable t) {
-////            t.printStackTrace();
-////        }
-//  //  });
-
 }

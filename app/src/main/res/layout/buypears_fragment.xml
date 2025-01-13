@@ -193,7 +193,6 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-
                     <ImageView
                         android:layout_width="35dp"
                         android:layout_height="35dp"
@@ -273,13 +272,13 @@
             <com.google.android.material.button.MaterialButton
                 android:layout_below="@+id/variant_buttons"
                 android:layout_marginTop="15dp"
-                android:id="@+id/money"
+                android:id="@+id/money1"
                 android:layout_gravity="center_horizontal"
                 android:layout_height="55dp"
                 android:layout_width="match_parent"
                 android:layout_margin="10dp"
                 android:layout_centerHorizontal="true"
-                android:text="вывести"
+                android:text="Купить"
                 android:background="@drawable/auth_button"
                 app:iconTintMode="multiply"
                 app:backgroundTint="@null"
