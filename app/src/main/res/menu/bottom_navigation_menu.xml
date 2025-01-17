@@ -21,4 +21,11 @@
         android:icon="@drawable/profile"
         android:title="@string/profile_menu"
        />
+
+
+    <item
+        android:id="@+id/nav_auction"
+        android:icon="@drawable/auction"
+        android:title="@string/auction_menu"
+        />
 </menu>

@@ -1,5 +1,7 @@
 package com.example.gomind.fragments;
 
+import static com.example.gomind.Utils.user;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -72,6 +74,66 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
 
         return view;
     }
+
+    //message
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        edtEmail.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                // Показываем иконку, если поле потеряло фокус
+                showEmailConfirmationDialog();
+            }
+        });
+    }
+    private void showEmailConfirmationDialog() {
+        EmailConfirmationFragment dialogFragment = new EmailConfirmationFragment();
+        dialogFragment.setEmailChangeListener(new EmailConfirmationFragment.OnEmailChangeListener() {
+            @Override
+            public void onConfirmEmailChange() {
+                // Сохраняем изменения E-mail
+                saveEmailToApi();
+            }
+            @Override
+            public void onCancelEmailChange() {
+                // Восстанавливаем старый E-mail
+                edtEmail.setText(user.getData().getEmail());
+            }
+        });
+
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .add(R.id.main_container, dialogFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void saveEmailToApi() {
+        String newEmail = edtEmail.getText().toString();
+        Call<ApiResponse> call = RetrofitClient.getInstance(getActivity())
+                .getUserAPI()
+                .updateEmail("jwt-cookie=" + SharedPrefManager.getInstance(getActivity()).getToken().getAccessToken(), newEmail);
+
+        call.enqueue(new Callback<ApiResponse>() {
+            @Override
+            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Обновление прошло успешно
+
+                } else {
+                    // Обработка ошибки
+                    Log.e("Update Email", "Error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse> call, Throwable t) {
+                Log.e("Update Email", "Failure: " + t.getMessage());
+            }
+        });
+    }
+
 
     private void getPoints() {
 

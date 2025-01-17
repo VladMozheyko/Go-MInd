@@ -68,10 +68,10 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < menu.size(); i++) {
             MenuItem item = menu.getItem(i);
-          //  SpannableString s = new SpannableString(titles[i]);
-
-         //   s.setSpan(new ForegroundColorSpan(Color.parseColor(colors[i])), 0, s.length(), 0);
-          //  item.setTitle(s);
+//            SpannableString s = new SpannableString(titles[i]);
+//
+//            s.setSpan(new ForegroundColorSpan(Color.parseColor(colors[i])), 0, s.length(), 0);
+//            item.setTitle(s);
         }
 
         Objects.requireNonNull(bottomNavigationView.getMenu().getItem(0).getIcon()).setTint(R.drawable.home);

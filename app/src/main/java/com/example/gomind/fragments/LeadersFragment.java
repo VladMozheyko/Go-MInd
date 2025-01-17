@@ -49,7 +49,7 @@ public class LeadersFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.leaders_fragment, container, false);
-        txtTime = view.findViewById(R.id.txt_time);
+        txtTime = view.findViewById(R.id.txt_timeAuction);
 
         imgAds = view.findViewById(R.id.img_add);
 

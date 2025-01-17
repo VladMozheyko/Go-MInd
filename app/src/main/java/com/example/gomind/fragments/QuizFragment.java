@@ -14,11 +14,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.gomind.Question;
 import com.example.gomind.R;
 import com.example.gomind.SharedPrefManager;
@@ -37,7 +38,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class QuizFragment extends Fragment implements View.OnClickListener{
+public class QuizFragment extends Fragment implements View.OnClickListener {
 
     private RecyclerView recyclerView;
     private AnswersAdapter answersAdapter;
@@ -61,11 +62,10 @@ public class QuizFragment extends Fragment implements View.OnClickListener{
 
         txtQuestion = view.findViewById(R.id.txt_question);
         imgAds = view.findViewById(R.id.img_add);
-        remainingTimeTextView = view.findViewById(R.id.txt_time);
+        remainingTimeTextView = view.findViewById(R.id.txt_timeAuction);
         txtPoints = view.findViewById(R.id.txt_points);
         answerBtn = view.findViewById(R.id.answer_btn);
         recyclerView = view.findViewById(R.id.question_list);
-
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity())); // 2 столбца для вариантов
 
@@ -105,9 +105,21 @@ public class QuizFragment extends Fragment implements View.OnClickListener{
                 if (response.body() != null) {
                     id = response.body();
                     Log.d("Ид ", " " + id);
-                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + id).into(imgAds);
+                    String imageUrl = "http://31.129.102.70:8081/user/file-system-image-by-id/" + id;
+
+                    // Загрузка изображения с закругленными углами
+                    Glide.with(requireActivity())
+                            .load(imageUrl)
+                            .apply(RequestOptions.bitmapTransform(new RoundedCorners(26))) // Установите радиус закругления
+                            .into(imgAds);
                 } else {
-                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + 4).into(imgAds);
+                    String imageUrl = "http://31.129.102.70:8081/user/file-system-image-by-id/" + 4;
+
+                    // Загрузка изображения с закругленными углами
+                    Glide.with(requireActivity())
+                            .load(imageUrl)
+                            .apply(RequestOptions.bitmapTransform(new RoundedCorners(26))) // Установите радиус закругления
+                            .into(imgAds);
                 }
             }
 
@@ -134,13 +146,9 @@ public class QuizFragment extends Fragment implements View.OnClickListener{
                     answersList.add(question.getOptionC());
                     answersList.add(question.getOptionD());
 
-
-
-                    AnswersAdapter.AnswerClickListener clickListener = new
-                            AnswersAdapter.AnswerClickListener() {
+                    AnswersAdapter.AnswerClickListener clickListener = new AnswersAdapter.AnswerClickListener() {
                         @Override
                         public void onClickListener(int answerId) {
-
                             selectedAnswerId = answerId;
                         }
                     };
@@ -158,32 +166,6 @@ public class QuizFragment extends Fragment implements View.OnClickListener{
         });
     }
 
-    private void onAnswerSelected(int position, int selectedItemIndex) {
-
-        // Убираем выделение с других кнопок
-        for (int i = 0; i < recyclerView.getChildCount(); i++) {
-            View child = recyclerView.getChildAt(i);
-
-        }
-        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-
-        for (int i = 0; i < layoutManager.getChildCount(); i++) {
-            View childItem = layoutManager.getChildAt(i);
-            MaterialButton answerButton = childItem.findViewById(R.id.btn_long_answer);
-            if(position == selectedItemIndex){
-                answerButton.setBackgroundResource(R.drawable.auth_button);
-            }
-            else {
-                answerButton.setBackgroundResource(R.drawable.border_inside);
-            }
-        }
-
-//        view.setBackgroundResource(R.drawable.auth_button);
-//        // Сохраняем ID выбранного ответа
-//        selectedAnswerId = (int) view.getTag(); // Сохраняем тег кнопки как ID ответа
-//        Log.d("Ответ id: " , " " + selectedAnswerId);
-    }
-
     private void submitAnswer() {
         if (selectedAnswerId == -1) {
             return; // Если ответ не выбран, ничего не делаем
@@ -198,12 +180,6 @@ public class QuizFragment extends Fragment implements View.OnClickListener{
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
                     Log.d("Quiz", "Ответ успешно отправлен!");
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-
                     getPoints(); // Обновляем баллы после отправки ответа
                     getQuestion(); // Получаем новый вопрос
                 } else {
@@ -259,26 +235,6 @@ public class QuizFragment extends Fragment implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-        for (int i = 0; i < recyclerView.getChildCount(); i++) {
-            View child = recyclerView.getChildAt(i);
 
-        }
-        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-
-//        for (int i = 0; i < layoutManager.getChildCount(); i++) {
-//            View childItem = layoutManager.getChildAt(i);
-//            MaterialButton answerButton = childItem.findViewById(R.id.btn_long_answer);
-//            if(position == selectedItemIndex){
-//                answerButton.setBackgroundResource(R.drawable.auth_button);
-//            }
-//            else {
-//                answerButton.setBackgroundResource(R.drawable.border_inside);
-//            }
-//        }
-//
-//        view.setBackgroundResource(R.drawable.auth_button);
-//        // Сохраняем ID выбранного ответа
-//        selectedAnswerId = (int) view.getTag(); // Сохраняем тег кнопки как ID ответа
-//        Log.d("Ответ id: " , " " + selectedAnswerId);
     }
 }
