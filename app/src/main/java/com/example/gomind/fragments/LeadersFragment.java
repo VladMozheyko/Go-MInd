@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.gomind.SharedPrefManager;
 import com.example.gomind.adapters.LeadersAdapter;
 import com.example.gomind.R;
@@ -63,10 +65,16 @@ public class LeadersFragment extends Fragment {
                 if(response.body() != null) {
                     id = response.body();
                     Log.d("Ид ", " " + id);
-                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + id).into(imgAds);
+                    Glide.with(requireActivity())
+                            .load("http://31.129.102.70:8081/user/file-system-image-by-id/" + id)
+                            .apply(RequestOptions.bitmapTransform(new RoundedCorners(26)))
+                            .into(imgAds);
                 }
                 else {
-                    Glide.with(requireActivity()).load("http://31.129.102.70:8081/user/file-system-image-by-id/" + 4).into(imgAds);
+                    Glide.with(requireActivity())
+                            .load("http://31.129.102.70:8081/user/file-system-image-by-id/" + 4)
+                            .apply(RequestOptions.bitmapTransform(new RoundedCorners(26)))
+                            .into(imgAds);
                 }
 
             }

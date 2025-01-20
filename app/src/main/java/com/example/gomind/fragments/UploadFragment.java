@@ -130,7 +130,7 @@ public class UploadFragment extends Fragment {
                     if (!auctions.isEmpty()) {
                         int maxBid = auctions.get(0).getCost(); // Берем первый элемент
                         TextView txtMaxBid = requireView().findViewById(R.id.txt_max_bid);
-                        txtMaxBid.setText("Максимальная ставка: " + maxBid);
+                        txtMaxBid.setText("Минимальная стоимость: " + maxBid);
                     } else {
                         Toast.makeText(getContext(), "Нет доступных ставок", Toast.LENGTH_SHORT).show();
                     }

@@ -231,7 +231,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
     }else if (id == R.id.byu_fruits) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
-            Fragment  buypearsFragment = new BuypearsFragment();
+            Fragment  buypearsFragment = new BuyPearsFragment();
             transaction.replace(R.id.main_container, buypearsFragment);
             transaction.addToBackStack(null);
             transaction.commit();}

@@ -22,12 +22,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class BuypearsFragment extends Fragment {
+public class BuyPearsFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.buypears_fragment, container, false);
+        View view = inflater.inflate(R.layout.buy_pears_fragment, container, false);
 
         // Загружаем баланс пользователя
         fetchUserBalance(view);

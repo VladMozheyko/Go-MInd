@@ -75,7 +75,7 @@
             android:layout_below="@+id/queue_layout"
             android:layout_centerHorizontal="true"
             android:layout_margin="10dp"
-            android:text="Сделать ставку"
+            android:text="Купить рекламу"
             android:background="@drawable/auth_button"
             android:textColor="@color/white"
             app:iconTintMode="multiply"
