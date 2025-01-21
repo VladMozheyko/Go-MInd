@@ -30,7 +30,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 // Адаптер для RecyclerView
-public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.ViewHolder> {
+public class  AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.ViewHolder> {
     // Поля для хранения данных
     private List<Auction> auctions; // Список аукционов
     private Context context; // Контекст приложения

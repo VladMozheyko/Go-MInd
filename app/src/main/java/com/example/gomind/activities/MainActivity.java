@@ -5,6 +5,7 @@ import static ru.yoomoney.sdk.kassa.payments.Checkout.createTokenizeIntent;
 
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -12,6 +13,7 @@ import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -20,6 +22,7 @@ import com.example.gomind.R;
 import com.example.gomind.SharedPrefManager;
 import com.example.gomind.Utils;
 import com.example.gomind.api.RetrofitClient;
+import com.example.gomind.fragments.ChooseModeFragment;
 import com.example.gomind.fragments.LeadersFragment;
 import com.example.gomind.fragments.ProfileFragment;
 import com.example.gomind.fragments.QuizFragment;
@@ -74,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
 //            item.setTitle(s);
         }
 
+
+
         Objects.requireNonNull(bottomNavigationView.getMenu().getItem(0).getIcon()).setTint(R.drawable.home);
 
         // Установка слушателя
@@ -90,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                            .commit();
                }
                 else if(id == R.id.nav_quiz){
-                    fragment = new QuizFragment();
+                   fragment = new ChooseModeFragment();
                     fragmentManager = getSupportFragmentManager();
                     fragmentManager.beginTransaction()
                             .replace(R.id.main_container, fragment)
