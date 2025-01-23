@@ -2,6 +2,7 @@ package com.example.gomind.fragments;
 
 import static com.example.gomind.Utils.user;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,15 +25,17 @@ import com.example.gomind.SharedPrefManager;
 import com.example.gomind.api.QuestionAPI;
 import com.example.gomind.api.RetrofitClient;
 import com.google.android.material.button.MaterialButton;
-
+import com.example.gomind.activities.AuthenticationActivity;
 import java.io.IOException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ProfileFragment extends Fragment implements View.OnClickListener{
+public class ProfileFragment extends Fragment implements View.OnClickListener {
 
 
     private EditText edtNick;
@@ -47,6 +50,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
     MaterialButton balanceBtn;
     MaterialButton addImageBtn;
     MaterialButton auctionBtn;
+    MaterialButton exitBtn;
 
     @Nullable
     @Override
@@ -67,6 +71,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
         auctionBtn.setOnClickListener(this);
         balanceBtn.setOnClickListener(this);
         buypearsBtn.setOnClickListener(this);
+        exitBtn = view.findViewById(R.id.exit_btn);
+        exitBtn.setOnClickListener(this);
 
         getProfile();
 
@@ -75,10 +81,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
         return view;
     }
 
-    //message
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Запуск обновления данных с периодичностью 30 минут
+        scheduleDataUpdate();
 
         edtEmail.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
@@ -86,6 +94,17 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
                 showEmailConfirmationDialog();
             }
         });
+    }
+    private void scheduleDataUpdate() {
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                // В этом месте обновляем данные
+                getProfile();
+                getPoints();
+            }
+        }, 0, 5, TimeUnit.MINUTES);  // 0 - начнем сразу, 30 - интервал в минутах
     }
     private void showEmailConfirmationDialog() {
         EmailConfirmationFragment dialogFragment = new EmailConfirmationFragment();
@@ -95,6 +114,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
                 // Сохраняем изменения E-mail
                 saveEmailToApi();
             }
+
             @Override
             public void onCancelEmailChange() {
                 // Восстанавливаем старый E-mail
@@ -181,8 +201,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
                             public void run() {
                                 edtNick.setText(user.getData().getNickname()); // Предполагаем, что у объекта User есть метод getNickname
                                 edtEmail.setText(user.getData().getEmail());
-                                edtPears.setText(""+user.getData().getPears());
-                          //      txtPoints.setText("" + user.getCount());
+                                edtPears.setText("" + user.getData().getPears());
+                                //      txtPoints.setText("" + user.getCount());
                                 // Добавьте другие данные для отображения
                             }
                         });
@@ -203,7 +223,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         int id = v.getId();
 
-        if(id == R.id.add_image_btn){
+        if (id == R.id.add_image_btn) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             Fragment fragment = new UploadFragment();
@@ -213,27 +233,46 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
 
             transaction.commit();
 
-        }
-        else if(id == R.id.auction_btn){
+        } else if (id == R.id.auction_btn) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             Fragment auctionFragment = new AuctionFragment();
             transaction.replace(R.id.main_container, auctionFragment);
             transaction.addToBackStack(null);
             transaction.commit();
-        }  else if (id == R.id.money) {
+        } else if (id == R.id.money) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             Fragment balanceFragment = new BalanceFragment();
             transaction.replace(R.id.main_container, balanceFragment);
             transaction.addToBackStack(null);
             transaction.commit();
-    }else if (id == R.id.byu_fruits) {
+        } else if (id == R.id.byu_fruits) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
-            Fragment  buypearsFragment = new BuyPearsFragment();
+            Fragment buypearsFragment = new BuyPearsFragment();
             transaction.replace(R.id.main_container, buypearsFragment);
             transaction.addToBackStack(null);
-            transaction.commit();}
+            transaction.commit();
+        } else if (id == R.id.exit_btn) {
+            logout();
+        }
+
+
+    }
+
+    private void logout() {
+        // Удаляем данные пользователя
+        SharedPrefManager.getInstance(getActivity()).clear();
+
+        getActivity().finishAffinity();
+    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Останавливаем планировщик, когда фрагмент больше не видим
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
+        }
     }
 }

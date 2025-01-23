@@ -14,6 +14,19 @@ public class SharedPrefManager {
     private final String VISITED_KEY = "IS_VISITED";
     SharedPreferences sp;
     SharedPreferences.Editor editor;
+    private static final String AGREEMENT_ACCEPTED_KEY = "agreement_accepted";
+
+
+    // Сохранение флага принятия соглашения
+    public void saveAgreementAccepted() {
+        editor.putBoolean(AGREEMENT_ACCEPTED_KEY, true);
+        editor.apply();
+    }
+
+    // Проверка, было ли принято соглашение
+    public boolean isAgreementAccepted() {
+        return sp.getBoolean(AGREEMENT_ACCEPTED_KEY, false);
+    }
 
     private SharedPrefManager(Context mCtx) {
         this.sp =  mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -53,12 +66,29 @@ public class SharedPrefManager {
         );
     }
 
+    public void saveUser(User user) {
+        editor.putString("email", user.getEmail());
+        editor.putString("nickname", user.getNickname());
+        editor.putString("pears", String.valueOf(user.getPears()));
+        editor.putString("count", String.valueOf(user.getCount()));
+        saveToken(user.getToken());
+        editor.apply();
+    }
 
 
     public boolean isLoggedIn(){
         return !sp.getString("token", "unauthorized").equals("unauthorized");
     }
 
+    public User getUser(){
+        User user = new User(
+                sp.getString("email", null),
+                sp.getString("nickname", null),
+                Integer.parseInt(sp.getString("pears", "0")),
+                Integer.parseInt(sp.getString("count", "0")),
+                getToken());
+        return user;
+    }
 
     public void saveImage(Bitmap bitmap) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -18,8 +18,10 @@ public class ChooseModeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.choose_mode_fragment, container, false);
+
         MaterialButton shortAnswersButton = view.findViewById(R.id.short_btn);
         MaterialButton longAnswersButton = view.findViewById(R.id.long_btn);
+
         // Установка обработчиков кнопок
         shortAnswersButton.setOnClickListener(v -> {
             updateButtonStyle(shortAnswersButton, longAnswersButton);
@@ -33,7 +35,6 @@ public class ChooseModeFragment extends Fragment {
 
         return view;
     }
-
     /**
      * Обновляет стиль кнопок: активной кнопке задается стиль auth_button,
      * а неактивной - reg_button.
@@ -45,7 +46,6 @@ public class ChooseModeFragment extends Fragment {
         inactiveButton.setBackgroundResource(R.drawable.reg_button);
         inactiveButton.setTextColor(getResources().getColor(R.color.black));
     }
-
     /**
      * Открывает QuizFragment.
      */

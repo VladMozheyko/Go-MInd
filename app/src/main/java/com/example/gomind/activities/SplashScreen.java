@@ -73,6 +73,9 @@ public class SplashScreen extends AppCompatActivity {
 
                 // Запускаем AuthActivity с задержкой, чтобы дождаться завершения рикошета
                 ricochetImageView.postDelayed(() -> {
+                    //TODO проверить SharedPrefManager заходили ли мы в приложение, если да, то запускаем AuthenticationActivity, если нет, то запускаем GreetingsActivity(после принятия условий записываем в )
+                    //TODO SharedPrefManager записываем, что приложение уже запускалось и переходим в майн активити
+                    //if()
                     Intent intent = new Intent(SplashScreen.this, AuthenticationActivity.class);
                     startActivity(intent);
                     finish(); // Завершение текущей активности, чтобы пользователь не вернулся к SplashScreen

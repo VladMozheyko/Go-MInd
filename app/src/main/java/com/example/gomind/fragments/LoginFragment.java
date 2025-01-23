@@ -35,7 +35,6 @@ import retrofit2.Response;
 
 public class LoginFragment extends Fragment {
 
-
     EditText edtPassword;
     EditText edtEmail;
     MaterialButton enterBtn;
@@ -49,14 +48,7 @@ public class LoginFragment extends Fragment {
         edtEmail = view.findViewById(R.id.edt_email);
         enterBtn = view.findViewById(R.id.enter_btn);
 
-        enterBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                login();
-            }
-        });
-
-
+        enterBtn.setOnClickListener(v -> login());
 
         return view;
     }
@@ -64,8 +56,8 @@ public class LoginFragment extends Fragment {
     private void login() {
         try {
             JSONObject paramObject = new JSONObject();
-            paramObject.put("password", Objects.requireNonNull(edtPassword.getText()).toString().trim());
-            paramObject.put("email", Objects.requireNonNull(edtEmail.getText()).toString().trim());
+            paramObject.put("password", edtPassword.getText().toString().trim());
+            paramObject.put("email", edtEmail.getText().toString().trim());
 
             Call<ResponseBody> call = RetrofitClient.getInstance(getActivity()).getAuthApi()
                     .login(paramObject.toString());
@@ -73,29 +65,16 @@ public class LoginFragment extends Fragment {
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
-
                     try {
-                        Log.d("Ответ: ", " " +  response.code());
                         if (response.code() == 200) {
-                            // если пользователь ввел корректные данные
-
-
-                            // пускаем в mainActivity
-                            Intent intent = new Intent(getActivity(), MainActivity.class);
-                            Log.d("Куки: ", RetrofitClient.cookieManager.getCookieStore().toString());
-                            // Получаем Map<HttpUrl, List<Cookie>> из cookieManager
+                            // Если логин успешен, сохраняем токены
                             Map<HttpUrl, List<Cookie>> cookieStore = RetrofitClient.cookieManager.getCookieStore();
-
-                            // Указываем URL для которого ищем cookies
                             HttpUrl url = HttpUrl.parse("http://31.129.102.70:8081/authentication/login");
 
                             if (cookieStore.containsKey(url)) {
                                 List<Cookie> cookies = cookieStore.get(url);
+                                String jwtCookie = null, refreshJwtCookie = null;
 
-                                String jwtCookie = null;
-                                String refreshJwtCookie = null;
-
-                                // Перебираем cookies
                                 for (Cookie cookie : cookies) {
                                     if ("jwt-cookie".equals(cookie.name())) {
                                         jwtCookie = cookie.value();
@@ -104,31 +83,27 @@ public class LoginFragment extends Fragment {
                                     }
                                 }
 
-                                // Логируем результаты
-                                SharedPrefManager.getInstance(getActivity()).saveToken(
-                                        new Token(
-                                                jwtCookie,
-                                                refreshJwtCookie
-                                        ));
-                            } else {
-                                Log.e("Cookies", "No cookies found for URL: " + url.toString());
+                                // Сохраняем токены
+                                SharedPrefManager.getInstance(getActivity()).saveToken(new Token(jwtCookie, refreshJwtCookie));
                             }
+
+                            // После успешного входа переходим в MainActivity
+                            Intent intent = new Intent(getActivity(), MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
-
                         }
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
 
                 @Override
-                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {}
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                    // Обработка ошибки
+                }
             });
 
-        } catch (
-                JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }

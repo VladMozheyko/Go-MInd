@@ -25,6 +25,7 @@ import com.example.gomind.api.RetrofitClient;
 import com.example.gomind.fragments.AuctionFragment;
 import com.example.gomind.fragments.ChooseModeFragment;
 import com.example.gomind.fragments.LeadersFragment;
+import com.example.gomind.fragments.LoginFragment;
 import com.example.gomind.fragments.ProfileFragment;
 import com.example.gomind.fragments.QuizFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -56,30 +57,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //      startTokenize();
+        // Проверяем, вошел ли пользователь
+        if (SharedPrefManager.getInstance(this).isLoggedIn()) {
 
-        getProfile();
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_view);
-        bottomNavigationView.setItemIconTintList(null);  // Отключаем цвета из темы
-        Menu menu = bottomNavigationView.getMenu();
-        // Получаем цвета из ресурсов, затем парсим их в Color и назначаем тексту, которой затем
-        // назначим каждому элементу меню отдельно
-        Resources resources = getResources();
-
-        String[] colors = resources.getStringArray(R.array.colors);
-
-       // String[] titles = resources.getStringArray(R.array.item_values);
-
-        for (int i = 0; i < menu.size(); i++) {
-            MenuItem item = menu.getItem(i);
-//            SpannableString s = new SpannableString(titles[i]);
-//
-//            s.setSpan(new ForegroundColorSpan(Color.parseColor(colors[i])), 0, s.length(), 0);
-//            item.setTitle(s);
+            loadMainFragment();
+        } else {
+            // Если не вошел, открываем LoginFragment
+            openLoginFragment();
         }
 
-
-
+        // Настроим навигацию
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_view);
+        bottomNavigationView.setItemIconTintList(null);
         Objects.requireNonNull(bottomNavigationView.getMenu().getItem(0).getIcon()).setTint(R.drawable.home);
 
         // Установка слушателя
@@ -87,39 +76,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 // Определяем действия в зависимости от выбранного элемента
-               int id = item.getItemId();
-               if(id == R.id.nav_home){
-                   fragment = new LeadersFragment();
-                   fragmentManager = getSupportFragmentManager();
-                   fragmentManager.beginTransaction()
-                           .replace(R.id.main_container, fragment)
-                           .commit();
-               }
-                else if(id == R.id.nav_quiz){
-                   fragment = new ChooseModeFragment();
+                int id = item.getItemId();
+                if (id == R.id.nav_home) {
+                    fragment = new LeadersFragment();
                     fragmentManager = getSupportFragmentManager();
                     fragmentManager.beginTransaction()
                             .replace(R.id.main_container, fragment)
                             .commit();
-                }
-                else if (id == R.id.nav_profile){
+                } else if (id == R.id.nav_quiz) {
+                    fragment = new ChooseModeFragment();
+                    fragmentManager = getSupportFragmentManager();
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.main_container, fragment)
+                            .commit();
+                } else if (id == R.id.nav_profile) {
                     fragment = new ProfileFragment();
                     fragmentManager = getSupportFragmentManager();
                     fragmentManager.beginTransaction()
                             .replace(R.id.main_container, fragment)
                             .commit();
+                } else if (id == R.id.nav_auction) {
+                    fragment = new AuctionFragment();
+                    fragmentManager = getSupportFragmentManager();
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.main_container, fragment)
+                            .commit();
                 }
-               else if (id == R.id.nav_auction){
-                   fragment = new AuctionFragment();
-                   fragmentManager = getSupportFragmentManager();
-                   fragmentManager.beginTransaction()
-                           .replace(R.id.main_container, fragment)
-                           .commit();
-               }
                 return true;
             }
         });
 
+        // Первоначальная загрузка главного фрагмента
         fragment = new LeadersFragment();
         fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
@@ -127,8 +114,25 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
-    public void startTokenize() {
+    private void loadMainFragment() {
+        // Загружаем основной экран
+        Fragment fragment = new LeadersFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.main_container, fragment)
+                .commit();
+    }
+    private void openLoginFragment() {
+        // Загружаем экран логина
+        Fragment fragment = new LoginFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.main_container, fragment)
+                .commit();
+    }
 
+    public void startTokenize() {
+        // Пример токенизации
         PaymentParameters paymentParameters = new PaymentParameters(
                 new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
                 "Груша",
@@ -136,69 +140,53 @@ public class MainActivity extends AppCompatActivity {
                 "live_NDk2NjAwpCrWyn1RSQ4Q4ZMwglUB0C_DaFQQ3yypP7Y",
                 "496600",
                 SavePaymentMethod.OFF,
-                 new HashSet<>(Arrays.asList(
-                        PaymentMethodType.BANK_CARD
-                )));
-
-
+                new HashSet<>(Arrays.asList(PaymentMethodType.BANK_CARD))
+        );
 
         Intent intent = createTokenizeIntent(this, paymentParameters);
         startActivityForResult(intent, 345);
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == 345) {
             switch (resultCode) {
                 case RESULT_OK:
-                    // Successful tokenization
                     if (data != null) {
                         TokenizationResult result = createTokenizationResult(data);
                         Log.d("токен", result.toString());
-
                     }
-
                     break;
                 case RESULT_CANCELED:
-                   Log.d("Ошибка токена", "");
+                    Log.d("Ошибка токена", "");
                     break;
             }
         }
     }
 
-    private void getProfile() {
+    public void getProfile() {
+        // Получаем профиль пользователя с использованием сохраненного токена
         Call<ApiResponse> call = RetrofitClient.getInstance(this)
                 .getUserAPI()
                 .getProfile("jwt-cookie=" + SharedPrefManager.getInstance(this).getToken().getAccessToken() +
                         "; refresh-jwt-cookie=" + SharedPrefManager.getInstance(this).getToken().getRefreshToken());
 
-        Thread thread = new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    // Выполняем запрос синхронно
                     Response<ApiResponse> response = call.execute();
-                    Log.d("code", " " + response.code());
-
                     if (response.isSuccessful() && response.body() != null) {
                         Utils.user = response.body();
-
-
-                        // Сохраняем данные пользователя, например, обновляем UI
-
+                        Log.d("API", "Пользователь получен: " + Utils.user);
                     } else {
-                        Log.e("Ошибка API", "Код ответа: " + response.code() + ", сообщение: " + response.message());
+                        Log.e("Ошибка API", "Код ответа: " + response.code());
                     }
                 } catch (IOException e) {
                     Log.e("Ошибка сети", e.getMessage(), e);
                 }
             }
-        });
-
-// Запускаем поток
-        thread.start();
+        }).start();
     }
 }
