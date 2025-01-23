@@ -53,12 +53,29 @@ public class SharedPrefManager {
         );
     }
 
+    public void saveUser(User user) {
+        editor.putString("email", user.getEmail());
+        editor.putString("nickname", user.getNickname());
+        editor.putString("pears", String.valueOf(user.getPears()));
+        editor.putString("count", String.valueOf(user.getCount()));
+        saveToken(user.getToken());
+        editor.apply();
+    }
 
 
     public boolean isLoggedIn(){
         return !sp.getString("token", "unauthorized").equals("unauthorized");
     }
 
+    public User getUser(){
+        User user = new User(
+                sp.getString("email", null),
+                sp.getString("nickname", null),
+                Integer.parseInt(sp.getString("pears", "0")),
+                Integer.parseInt(sp.getString("count", "0")),
+                getToken());
+        return user;
+    }
 
     public void saveImage(Bitmap bitmap) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

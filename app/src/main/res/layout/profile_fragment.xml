@@ -283,6 +283,25 @@
             android:textAlignment="center"
             android:textFontWeight="900"/>
 
+        <com.google.android.material.button.MaterialButton
+            android:layout_below="@+id/variant_buttons"
+            android:layout_marginTop="15dp"
+            android:id="@+id/exit_btn"
+            android:layout_gravity="center_horizontal"
+            android:layout_height="48dp"
+            android:layout_width="match_parent"
+            android:layout_margin="10dp"
+            android:layout_centerHorizontal="true"
+            android:text="Выход"
+            android:background="@drawable/reg_button"
+            app:iconTintMode="multiply"
+            app:backgroundTint="@null"
+            android:fontFamily="@font/regular"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textAlignment="center"
+            android:textFontWeight="900"/>
+
     </LinearLayout>
     </ScrollView>
 

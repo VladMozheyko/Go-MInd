@@ -2,10 +2,10 @@ package com.example.gomind.activities;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -23,6 +23,8 @@ import com.example.gomind.R;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GreetingsActivity extends AppCompatActivity {
     private PdfRenderer pdfRenderer;
@@ -33,9 +35,14 @@ public class GreetingsActivity extends AppCompatActivity {
     private CheckBox confirmCheckBox;
     private ScaleGestureDetector scaleGestureDetector;
 
-    private float scaleFactor = 1.7f; // Исходное значение
-    private final float MIN_SCALE = 1.7f; // Минимальный масштаб — не меньше 1.7
-    private final float MAX_SCALE = 4.0f;
+    private float scaleFactor = 1.7f; // Исходный масштаб
+    private final float MIN_SCALE = 1.7f; // Минимальный масштаб
+    private final float MAX_SCALE = 4.0f; // Максимальный масштаб
+
+    private boolean isScaling = false; // Флаг для отслеживания состояния масштабирования
+    private boolean isInitialScale = true; // Флаг для определения начального масштаба
+
+    private List<Rect> hitboxes = new ArrayList<>(); // Список хитбоксов для каждой страницы
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +56,7 @@ public class GreetingsActivity extends AppCompatActivity {
 
         try {
             openRenderer();
-            displayAllPages();
+            displayVisiblePages();
 
             findViewById(R.id.confirmButton).setOnClickListener(v -> {
                 if (confirmCheckBox.isChecked()) {
@@ -64,17 +71,45 @@ public class GreetingsActivity extends AppCompatActivity {
             Toast.makeText(this, "Ошибка открытия PDF", Toast.LENGTH_SHORT).show();
         }
 
-        // Инициализация ScaleGestureDetector для масштабирования
+        // Инициализация ScaleGestureDetector для обработки масштабирования
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
 
-        // Обработка событий прокрутки и масштабирования
-        View.OnTouchListener touchListener = (v, event) -> {
-            scaleGestureDetector.onTouchEvent(event);
-            return false;
-        };
+        // Установка обработчика касаний
+        pdfScrollView.setOnTouchListener(this::onTouch);
+        horizontalScrollView.setOnTouchListener(this::onTouch);
+    }
 
-        pdfScrollView.setOnTouchListener(touchListener);
-        horizontalScrollView.setOnTouchListener(touchListener);
+    public boolean onTouch(View v, MotionEvent event) {
+        // Обработка жестов масштабирования
+        scaleGestureDetector.onTouchEvent(event);
+
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                isScaling = false;
+                checkHitbox(event.getX(), event.getY());
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                if (!isScaling) {
+                    checkHitbox(event.getX(), event.getY());
+                }
+                break;
+
+            case MotionEvent.ACTION_POINTER_DOWN:
+                isScaling = true;
+                break;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                isScaling = false;
+                break;
+
+            case MotionEvent.ACTION_CANCEL:
+                isScaling = false;
+                break;
+        }
+
+        return isScaling;
     }
 
     private void openRenderer() throws Exception {
@@ -93,13 +128,15 @@ public class GreetingsActivity extends AppCompatActivity {
         pdfRenderer = new PdfRenderer(fileDescriptor);
     }
 
-    private void displayAllPages() {
+    private void displayVisiblePages() {
         if (pdfRenderer == null) return;
 
         pdfContainer.removeAllViews();
+        hitboxes.clear(); // Очищаем хитбоксы перед новым рендерингом
 
         for (int i = 0; i < pdfRenderer.getPageCount(); i++) {
             PdfRenderer.Page page = pdfRenderer.openPage(i);
+
             ImageView imageView = new ImageView(this);
 
             int originalWidth = page.getWidth();
@@ -109,35 +146,78 @@ public class GreetingsActivity extends AppCompatActivity {
 
             Bitmap bitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888);
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-
             imageView.setImageBitmap(bitmap);
 
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            // Настройка параметров для ImageView
+            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            imageView.setLayoutParams(params);
+            imageView.setLayoutParams(imageParams);
 
-            pdfContainer.addView(imageView);
+            // Создаем контейнер для страницы
+            LinearLayout pageContainer = new LinearLayout(this);
+            pageContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+            pageContainer.setPadding(40, 16, 60, 16); // Отступы
+            pageContainer.setBackgroundColor(getResources().getColor(android.R.color.black));
+            pageContainer.addView(imageView);
 
+            pdfContainer.addView(pageContainer);
             page.close();
+
+            // Вычисляем хитбокс
+            int[] location = new int[2];
+            imageView.getLocationOnScreen(location); // Получаем координаты в экранных единицах
+            Rect hitbox = new Rect(
+                    location[0],
+                    location[1],
+                    location[0] + scaledWidth,
+                    location[1] + scaledHeight
+            );
+            hitboxes.add(hitbox); // Сохраняем хитбокс
         }
 
-        pdfContainer.invalidate();
+        // Устанавливаем начальную позицию прокрутки только один раз
+        if (isInitialScale) {
+            pdfScrollView.scrollTo(0, 0);
+            horizontalScrollView.scrollTo(0, 0);
+            isInitialScale = false;
+        }
+    }
+
+    private void checkHitbox(float x, float y) {
+        for (int i = 0; i < hitboxes.size(); i++) {
+            Rect hitbox = hitboxes.get(i);
+            if (hitbox.contains((int) x, (int) y)) {
+                //Toast.makeText(this, "Попадание на странице: " + (i + 1), Toast.LENGTH_SHORT).show();
+                return; // Выход после первого попадания
+            }
+        }
+    }
+
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            float scale = detector.getScaleFactor();
+            scaleFactor *= scale;
+
+            // Ограничиваем масштабирование
+            scaleFactor = Math.max(MIN_SCALE, Math.min(scaleFactor, MAX_SCALE));
+
+            // Обновляем только видимые страницы
+            displayVisiblePages();
+
+            return true;
+        }
     }
 
     private void navigateToLoginFragment() {
         Intent intent = new Intent(this, SplashScreen.class);
         startActivity(intent);
         finish();
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (scaleGestureDetector.onTouchEvent(event)) {
-            return true;
-        }
-        return super.onTouchEvent(event);
     }
 
     @Override
@@ -152,24 +232,6 @@ public class GreetingsActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            scaleFactor *= detector.getScaleFactor();
-            scaleFactor = Math.max(MIN_SCALE, Math.min(scaleFactor, MAX_SCALE));
-
-            // Если пользователь уменьшает масштаб ниже исходного значения, вернуть к 1.7
-            if (scaleFactor < 1.7f) {
-                scaleFactor = 1.7f;
-            }
-
-            Log.d("ScaleGesture", "ScaleFactor: " + scaleFactor);
-
-            displayAllPages();
-            return true;
         }
     }
 }

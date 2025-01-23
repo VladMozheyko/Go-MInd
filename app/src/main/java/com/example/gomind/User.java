@@ -1,18 +1,25 @@
 package com.example.gomind;
 
 public class User {
+    //long userId;
     private String email;
     private String nickname;
     private int pears;
     private int count;
-
-    public User(String email, String nickname, int pears, int count) {
+    Token token;
+    public User(String email, String nickname, int pears, int count, Token token) {
         this.email = email;
         this.nickname = nickname;
         this.pears = pears;
         this.count = count;
+        this.token = token;
     }
-
+//    public long getUserId() {
+//        return userId;
+//    }
+public Token getToken() {
+    return token;
+}
     public String getEmail() {
         return email;
     }
@@ -52,6 +59,7 @@ public class User {
                 ", nickname='" + nickname + '\'' +
                 ", pears=" + pears +
                 ", count=" + count +
+                ", token=" + token +
                 '}';
     }
 }
