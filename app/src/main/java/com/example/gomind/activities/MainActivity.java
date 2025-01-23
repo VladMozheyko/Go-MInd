@@ -22,6 +22,7 @@ import com.example.gomind.R;
 import com.example.gomind.SharedPrefManager;
 import com.example.gomind.Utils;
 import com.example.gomind.api.RetrofitClient;
+import com.example.gomind.fragments.AuctionFragment;
 import com.example.gomind.fragments.ChooseModeFragment;
 import com.example.gomind.fragments.LeadersFragment;
 import com.example.gomind.fragments.ProfileFragment;
@@ -108,6 +109,13 @@ public class MainActivity extends AppCompatActivity {
                             .replace(R.id.main_container, fragment)
                             .commit();
                 }
+               else if (id == R.id.nav_auction){
+                   fragment = new AuctionFragment();
+                   fragmentManager = getSupportFragmentManager();
+                   fragmentManager.beginTransaction()
+                           .replace(R.id.main_container, fragment)
+                           .commit();
+               }
                 return true;
             }
         });

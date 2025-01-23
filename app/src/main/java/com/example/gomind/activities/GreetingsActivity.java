@@ -8,8 +8,9 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.widget.Button;
+import android.view.View;
 import android.widget.CheckBox;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -27,11 +28,14 @@ public class GreetingsActivity extends AppCompatActivity {
     private PdfRenderer pdfRenderer;
     private ParcelFileDescriptor fileDescriptor;
     private LinearLayout pdfContainer;
+    private HorizontalScrollView horizontalScrollView;
     private ScrollView pdfScrollView;
     private CheckBox confirmCheckBox;
     private ScaleGestureDetector scaleGestureDetector;
 
-    private float scaleFactor = 1.0f;
+    private float scaleFactor = 1.7f; // Исходное значение
+    private final float MIN_SCALE = 1.7f; // Минимальный масштаб — не меньше 1.7
+    private final float MAX_SCALE = 4.0f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +43,8 @@ public class GreetingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_greetings);
 
         pdfContainer = findViewById(R.id.pdfContainer);
-        pdfScrollView = findViewById(R.id.pdfScrollView);
+        pdfScrollView = findViewById(R.id.verticalScrollView);
+        horizontalScrollView = findViewById(R.id.horizontalScrollView);
         confirmCheckBox = findViewById(R.id.confirmCheckBox);
 
         try {
@@ -62,11 +67,14 @@ public class GreetingsActivity extends AppCompatActivity {
         // Инициализация ScaleGestureDetector для масштабирования
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
 
-        // Обработка событий в ScrollView
-        pdfScrollView.setOnTouchListener((v, event) -> {
-            scaleGestureDetector.onTouchEvent(event); // Передача событий ScaleGestureDetector
-            return false; // Продолжить обработку скроллинга
-        });
+        // Обработка событий прокрутки и масштабирования
+        View.OnTouchListener touchListener = (v, event) -> {
+            scaleGestureDetector.onTouchEvent(event);
+            return false;
+        };
+
+        pdfScrollView.setOnTouchListener(touchListener);
+        horizontalScrollView.setOnTouchListener(touchListener);
     }
 
     private void openRenderer() throws Exception {
@@ -88,26 +96,34 @@ public class GreetingsActivity extends AppCompatActivity {
     private void displayAllPages() {
         if (pdfRenderer == null) return;
 
-        pdfContainer.removeAllViews(); // Очистка контейнера перед добавлением страниц
+        pdfContainer.removeAllViews();
 
         for (int i = 0; i < pdfRenderer.getPageCount(); i++) {
             PdfRenderer.Page page = pdfRenderer.openPage(i);
             ImageView imageView = new ImageView(this);
 
-            // Установка размеров в зависимости от масштаба
-            int width = (int) (getResources().getDisplayMetrics().widthPixels * scaleFactor);
-            int height = (int) (page.getHeight() * width / page.getWidth()); // Сохраняем пропорции
+            int originalWidth = page.getWidth();
+            int originalHeight = page.getHeight();
+            int scaledWidth = (int) (originalWidth * scaleFactor);
+            int scaledHeight = (int) (originalHeight * scaleFactor);
 
-            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Bitmap bitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888);
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+
             imageView.setImageBitmap(bitmap);
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            imageView.setLayoutParams(params);
 
             pdfContainer.addView(imageView);
+
             page.close();
         }
 
-        pdfContainer.invalidate(); // Обновление вида контейнера
+        pdfContainer.invalidate();
     }
 
     private void navigateToLoginFragment() {
@@ -119,7 +135,7 @@ public class GreetingsActivity extends AppCompatActivity {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (scaleGestureDetector.onTouchEvent(event)) {
-            return true; // Если жест распознан, остановить дальнейшую обработку
+            return true;
         }
         return super.onTouchEvent(event);
     }
@@ -143,11 +159,15 @@ public class GreetingsActivity extends AppCompatActivity {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             scaleFactor *= detector.getScaleFactor();
-            scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 3.0f));
+            scaleFactor = Math.max(MIN_SCALE, Math.min(scaleFactor, MAX_SCALE));
+
+            // Если пользователь уменьшает масштаб ниже исходного значения, вернуть к 1.7
+            if (scaleFactor < 1.7f) {
+                scaleFactor = 1.7f;
+            }
 
             Log.d("ScaleGesture", "ScaleFactor: " + scaleFactor);
 
-            // Перерисовка страниц при изменении масштаба
             displayAllPages();
             return true;
         }
