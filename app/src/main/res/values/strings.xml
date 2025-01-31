@@ -21,4 +21,5 @@
     <string name='main_product_name'>Comet</string>
     <string name='main_product_description'>Very bright, with an orbital period of 112 years.</string>
     <string name="auction_menu">Аукцион</string>
+    <string name="confirm_agreement">Принимаю</string>
 </resources>

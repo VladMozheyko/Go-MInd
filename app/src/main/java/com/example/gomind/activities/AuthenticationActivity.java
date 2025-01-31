@@ -25,17 +25,15 @@ public class AuthenticationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_authentication);
         fragmentManager = getSupportFragmentManager();
 
-        // Проверяем, вошел ли пользователь
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
-            // Если вошел, сразу переходим в MainActivity
+            // Если пользователь уже авторизован, сразу в `MainActivity`
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
-            finish();  // Закрываем текущую активность, чтобы вернуться в нее нельзя было
+            finish();
         } else {
-            // Если не вошел, показываем экран приветствия
-            fragment = new GreetingFragment();
-            fragmentManager.beginTransaction()
-                    .add(R.id.authentication_container, fragment)
+            // Если не авторизован, показываем `LoginFragment`
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.authentication_container, new GreetingFragment())
                     .commit();
         }
     }
