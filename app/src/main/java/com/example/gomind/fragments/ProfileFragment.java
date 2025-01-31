@@ -3,6 +3,7 @@ package com.example.gomind.fragments;
 import static com.example.gomind.Utils.user;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,6 +26,7 @@ import com.example.gomind.R;
 import com.example.gomind.SharedPrefManager;
 import com.example.gomind.api.QuestionAPI;
 import com.example.gomind.api.RetrofitClient;
+import com.example.gomind.sound.SoundManager;
 import com.google.android.material.button.MaterialButton;
 import com.example.gomind.activities.AuthenticationActivity;
 import java.io.IOException;
@@ -51,61 +54,103 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     MaterialButton addImageBtn;
     MaterialButton auctionBtn;
     MaterialButton exitBtn;
-
-    @Nullable
+    private SoundManager soundManager;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.profile_fragment, container, false);
 
-        edtNick = view.findViewById(R.id.edt_bid);
+        // Инициализируем элементы
+        ImageView iconKrug = view.findViewById(R.id.icon_krug);
+        ImageView iconCross = view.findViewById(R.id.icon_cross);
+        ImageView iconDone = view.findViewById(R.id.icon_done);
         edtEmail = view.findViewById(R.id.edt_email);
+
+        // Начальное состояние
+        resetIcons(iconKrug, iconCross, iconDone);
+
+        // Слушатель на иконку "krug"
+        iconKrug.setOnClickListener(v -> {
+            iconKrug.setVisibility(View.GONE);
+            iconCross.setVisibility(View.VISIBLE);
+            iconDone.setVisibility(View.VISIBLE);
+            edtEmail.setFocusableInTouchMode(true);
+            edtEmail.setFocusable(true);
+            edtEmail.requestFocus();
+        });
+
+        // Слушатель на иконку "cross"
+        iconCross.setOnClickListener(v -> {
+            resetIcons(iconKrug, iconCross, iconDone);
+        });
+
+        // Слушатель на иконку "done"
+        iconDone.setOnClickListener(v -> {
+            String emailText = edtEmail.getText().toString().trim();
+            if (!emailText.isEmpty()) {
+                EmailConfirmationFragment dialogFragment = new EmailConfirmationFragment();
+                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+
+                // Возвращаем иконки в исходное состояние после закрытия диалога
+                fragmentManager.setFragmentResultListener("email_confirmed", this, (requestKey, result) -> {
+                    resetIcons(iconKrug, iconCross, iconDone);
+                });
+
+                fragmentManager.beginTransaction()
+                        .add(R.id.main_container, dialogFragment)
+                        .addToBackStack(null)
+                        .commit();
+            } else {
+                edtEmail.setError("Введите email!");
+            }
+        });
+
+        // Инициализация SoundManager
+        soundManager = SoundManager.getInstance(getContext());
+        edtNick = view.findViewById(R.id.edt_bid);
         edtPears = view.findViewById(R.id.edt_pears);
         txtPoints = view.findViewById(R.id.txt_points);
 
         addImageBtn = view.findViewById(R.id.add_image_btn);
-        auctionBtn = view.findViewById(R.id.auction_btn);
         balanceBtn = view.findViewById(R.id.money);
         buypearsBtn = view.findViewById(R.id.byu_fruits);
+        exitBtn = view.findViewById(R.id.exit_btn);
 
         addImageBtn.setOnClickListener(this);
-        auctionBtn.setOnClickListener(this);
         balanceBtn.setOnClickListener(this);
         buypearsBtn.setOnClickListener(this);
-        exitBtn = view.findViewById(R.id.exit_btn);
         exitBtn.setOnClickListener(this);
 
         getProfile();
-
         getPoints();
 
         return view;
     }
 
+    // Метод для сброса иконок в начальное состояние
+    private void resetIcons(ImageView iconKrug, ImageView iconCross, ImageView iconDone) {
+        iconKrug.setVisibility(View.VISIBLE);
+        iconCross.setVisibility(View.GONE);
+        iconDone.setVisibility(View.GONE);
+        edtEmail.clearFocus();
+        edtEmail.setFocusable(false);
+        edtEmail.setFocusableInTouchMode(false);
+    }
+
+
+
+    //message
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Запуск обновления данных с периодичностью 30 минут
-        scheduleDataUpdate();
+//        edtEmail.setOnFocusChangeListener((v, hasFocus) -> {
+//            if (!hasFocus) {
+//                // Показываем иконку, если поле потеряло фокус
+//                showEmailConfirmationDialog();
+//            }
+//        });
+    }
 
-        edtEmail.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                // Показываем иконку, если поле потеряло фокус
-                showEmailConfirmationDialog();
-            }
-        });
-    }
-    private void scheduleDataUpdate() {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                // В этом месте обновляем данные
-                getProfile();
-                getPoints();
-            }
-        }, 0, 5, TimeUnit.MINUTES);  // 0 - начнем сразу, 30 - интервал в минутах
-    }
     private void showEmailConfirmationDialog() {
         EmailConfirmationFragment dialogFragment = new EmailConfirmationFragment();
         dialogFragment.setEmailChangeListener(new EmailConfirmationFragment.OnEmailChangeListener() {
@@ -221,6 +266,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        soundManager.playSound();
         int id = v.getId();
 
         if (id == R.id.add_image_btn) {
@@ -233,13 +279,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
             transaction.commit();
 
-        } else if (id == R.id.auction_btn) {
-            FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            Fragment auctionFragment = new AuctionFragment();
-            transaction.replace(R.id.main_container, auctionFragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
+
         } else if (id == R.id.money) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -262,11 +302,18 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
     private void logout() {
-        // Удаляем данные пользователя
-        SharedPrefManager.getInstance(getActivity()).clear();
+        // Получаем SharedPreferences.Editor через SharedPrefManager
+        SharedPreferences.Editor editor = SharedPrefManager.getInstance(getActivity()).getSharedPreferences().edit();
 
+        // Удаляем данные, которые не касаются флага первого запуска
+        editor.remove("token");  // Пример удаления только токена
+        // Тут можешь очистить другие данные, которые нужно удалить
+        editor.apply();
+
+        // Завершаем активность
         getActivity().finishAffinity();
     }
+
     @Override
     public void onStop() {
         super.onStop();

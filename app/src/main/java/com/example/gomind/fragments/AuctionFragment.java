@@ -19,6 +19,7 @@ import com.example.gomind.R;
 import com.example.gomind.adapters.AuctionAdapter;
 import com.example.gomind.api.QuestionAPI;
 import com.example.gomind.api.RetrofitClient;
+import com.example.gomind.sound.SoundManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +37,13 @@ public class AuctionFragment extends Fragment {
     private AuctionAdapter adapter;
     private List<Auction> auctionList = new ArrayList<>();
     private Button betBtn; // Добавляем кнопку
-
+    private SoundManager soundManager;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Инфлейтинг разметки фрагмента
         View view = inflater.inflate(R.layout.auction_fragment, container, false);
-
+        // Инициализация SoundManager
+        soundManager = SoundManager.getInstance(getContext());
         // Инициализация RecyclerView
         recyclerView = view.findViewById(R.id.question_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -53,9 +55,11 @@ public class AuctionFragment extends Fragment {
         // Инициализация кнопки "Ставка"
         betBtn = view.findViewById(R.id.bet_btn);
 
-        // Устанавливаем обработчик нажатия
-        betBtn.setOnClickListener(v -> navigateToUploadFragment());
-
+        // Устанавливаем обработчик нажатия с воспроизведением звука
+        betBtn.setOnClickListener(v -> {
+            soundManager.playSound(); // Воспроизведение звука при нажатии
+            navigateToUploadFragment();
+        });
         // Получение данных из API
         loadAuctions();
 
@@ -75,6 +79,7 @@ public class AuctionFragment extends Fragment {
     }
 
     private void loadAuctions() {
+
         QuestionAPI auctionApi = RetrofitClient.getInstance(requireContext()).getQuestionAPI();
         Call<List<Auction>> call = auctionApi.getAuctions();
 
@@ -95,5 +100,10 @@ public class AuctionFragment extends Fragment {
                 Log.e("Retrofit", "Ошибка запроса: " + t.getMessage());
             }
         });
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        soundManager.release();
     }
 }

@@ -82,48 +82,69 @@
 
 
     </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_margin="10dp"
-        android:layout_height="48dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@drawable/rounded_button_white"
-        android:layout_marginBottom="16dp">
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="320dp"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/krug"/>
-        <ImageView
-            android:id="@+id/email_confirm_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="320dp"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/done"
-            android:visibility="gone" />
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="30dp"
-            android:src="@drawable/email"/>
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/edt_email"
-            android:layout_toStartOf="@id/email_confirm_icon"
-            android:background="@null"
-            android:padding="11dp"
-            android:textColorHint="#1E3761"
-            android:fontFamily="@font/regular"
-            android:textStyle="bold"
-            android:textColor="@color/main_blue"
-            android:textSize="20sp"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_margin="10dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/rounded_button_white"
+            android:layout_marginBottom="16dp">
 
-    </RelativeLayout>
+            <!-- Иконка "krug" (по умолчанию) -->
+            <ImageView
+                android:id="@+id/icon_krug"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="320dp"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/krug"
+                android:visibility="visible"/>
 
-    <RelativeLayout
+            <!-- Иконка "cross" (по умолчанию скрыта) -->
+            <ImageView
+                android:id="@+id/icon_cross"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="320dp"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/cross"
+                android:visibility="gone"/>
+
+            <!-- Иконка "done" (по умолчанию скрыта) -->
+            <ImageView
+                android:id="@+id/icon_done"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="280dp"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/done"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:src="@drawable/email"/>
+
+            <!-- Поле ввода Email (по умолчанию неактивно) -->
+            <EditText
+                android:id="@+id/edt_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:padding="11dp"
+                android:textColorHint="#1E3761"
+                android:fontFamily="@font/regular"
+                android:textStyle="bold"
+                android:textColor="@color/main_blue"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"/>
+
+        </RelativeLayout>
+
+
+        <RelativeLayout
         android:layout_width="match_parent"
         android:layout_margin="10dp"
         android:layout_height="48dp"
@@ -264,24 +285,7 @@
         android:textFontWeight="900"/>
 
 
-        <com.google.android.material.button.MaterialButton
-            android:layout_below="@+id/variant_buttons"
-            android:layout_marginTop="15dp"
-            android:id="@+id/auction_btn"
-            android:layout_gravity="center_horizontal"
-            android:layout_height="48dp"
-            android:layout_width="match_parent"
-            android:layout_margin="10dp"
-            android:layout_centerHorizontal="true"
-            android:text="Аукцион"
-            android:background="@drawable/reg_button"
-            app:iconTintMode="multiply"
-            app:backgroundTint="@null"
-            android:fontFamily="@font/regular"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            android:textAlignment="center"
-            android:textFontWeight="900"/>
+
 
         <com.google.android.material.button.MaterialButton
             android:layout_below="@+id/variant_buttons"

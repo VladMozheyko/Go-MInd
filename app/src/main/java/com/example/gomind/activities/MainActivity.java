@@ -28,6 +28,7 @@ import com.example.gomind.fragments.LeadersFragment;
 import com.example.gomind.fragments.LoginFragment;
 import com.example.gomind.fragments.ProfileFragment;
 import com.example.gomind.fragments.QuizFragment;
+import com.example.gomind.sound.SoundManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -51,12 +52,13 @@ public class MainActivity extends AppCompatActivity {
 
     Fragment fragment;
     FragmentManager fragmentManager;
-
+    private SoundManager soundManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+// Инициализация SoundManager
+        soundManager = SoundManager.getInstance(this);
         // Проверяем, вошел ли пользователь
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
 
@@ -76,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 // Определяем действия в зависимости от выбранного элемента
+                soundManager.playSound();
                 int id = item.getItemId();
                 if (id == R.id.nav_home) {
                     fragment = new LeadersFragment();

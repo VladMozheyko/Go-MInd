@@ -13,29 +13,31 @@ import com.example.gomind.SharedPrefManager;
 import com.example.gomind.fragments.GreetingFragment;
 import com.example.gomind.fragments.LoginFragment;
 import com.example.gomind.fragments.RegisterFragment;
+import com.example.gomind.sound.SoundManager;
 
 public class AuthenticationActivity extends AppCompatActivity {
 
     Fragment fragment;
     FragmentManager fragmentManager;
+    private SoundManager soundManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authentication);
         fragmentManager = getSupportFragmentManager();
+        // Инициализация SoundManager
+        soundManager = SoundManager.getInstance(this);
 
-        // Проверяем, вошел ли пользователь
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
-            // Если вошел, сразу переходим в MainActivity
+            // Если пользователь уже авторизован, сразу в `MainActivity`
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
-            finish();  // Закрываем текущую активность, чтобы вернуться в нее нельзя было
+            finish();
         } else {
-            // Если не вошел, показываем экран приветствия
-            fragment = new GreetingFragment();
-            fragmentManager.beginTransaction()
-                    .add(R.id.authentication_container, fragment)
+            // Если не авторизован, показываем `LoginFragment`
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.authentication_container, new GreetingFragment())
                     .commit();
         }
     }
@@ -48,6 +50,7 @@ public class AuthenticationActivity extends AppCompatActivity {
     }
 
     public void onClick(View view) {
+        soundManager.playSound();
         int id = view.getId();
         if (id == R.id.login_button) {
             replaceFragment(new LoginFragment());

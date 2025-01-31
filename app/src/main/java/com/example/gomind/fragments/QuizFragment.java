@@ -26,6 +26,7 @@ import com.example.gomind.SharedPrefManager;
 import com.example.gomind.adapters.AnswersAdapter;
 import com.example.gomind.api.QuestionAPI;
 import com.example.gomind.api.RetrofitClient;
+import com.example.gomind.sound.SoundManager;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
@@ -54,12 +55,12 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
     private final QuestionAPI questionAPI = RetrofitClient.getInstance(getActivity()).getQuestionAPI();
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
     private int id = 0;
-
+    private SoundManager soundManager;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.quiz_fragment, container, false);
-
+        soundManager = SoundManager.getInstance(getActivity());
         txtQuestion = view.findViewById(R.id.txt_question);
         imgAds = view.findViewById(R.id.img_add);
         remainingTimeTextView = view.findViewById(R.id.txt_timeAuction);
@@ -69,7 +70,10 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity())); // 2 столбца для вариантов
 
-        answerBtn.setOnClickListener(v -> submitAnswer()); // Обработчик нажатия кнопки отправки
+        answerBtn.setOnClickListener(v -> {
+            soundManager.playSound(); // Воспроизведение звука при нажатии
+            submitAnswer();
+        }); // Обработчик нажатия кнопки отправки
 
         getPoints();
         getAdvertisements();
@@ -105,7 +109,7 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
                 if (response.body() != null) {
                     id = response.body();
                     Log.d("Ид ", " " + id);
-                    String imageUrl = "http://31.129.102.70:8081/user/file-system-image-by-id/" + id;
+                    String imageUrl = "http://158.160.138.117:8080/user/file-system-image-by-id/" + id;
 
                     // Загрузка изображения с закругленными углами
                     Glide.with(requireActivity())
@@ -113,7 +117,7 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
                             .apply(RequestOptions.bitmapTransform(new RoundedCorners(26))) // Установите радиус закругления
                             .into(imgAds);
                 } else {
-                    String imageUrl = "http://31.129.102.70:8081/user/file-system-image-by-id/" + 4;
+                    String imageUrl = "http://158.160.138.117:8080/user/file-system-image-by-id/" + 4;
 
                     // Загрузка изображения с закругленными углами
                     Glide.with(requireActivity())

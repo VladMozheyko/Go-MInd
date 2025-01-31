@@ -10,25 +10,29 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.gomind.R;
+import com.example.gomind.sound.SoundManager;
 import com.google.android.material.button.MaterialButton;
 
 public class ChooseModeFragment extends Fragment {
-
+    private SoundManager soundManager;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.choose_mode_fragment, container, false);
-
+// Инициализация SoundManager
+        soundManager = SoundManager.getInstance(getContext());
         MaterialButton shortAnswersButton = view.findViewById(R.id.short_btn);
         MaterialButton longAnswersButton = view.findViewById(R.id.long_btn);
 
         // Установка обработчиков кнопок
         shortAnswersButton.setOnClickListener(v -> {
+            soundManager.playSound();
             updateButtonStyle(shortAnswersButton, longAnswersButton);
             openQuizFragment();
         });
 
         longAnswersButton.setOnClickListener(v -> {
+            soundManager.playSound();
             updateButtonStyle(longAnswersButton, shortAnswersButton);
             openQuizFragment();
         });

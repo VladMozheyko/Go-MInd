@@ -63,7 +63,7 @@ public class  AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.ViewHol
         holder.txtPeaches.setText(String.valueOf(auction.getCost())); // Установка стоимости
 
         // Загрузка изображения через Glide с закруглением углов
-        String imageUrl = "http://31.129.102.70:8081/user/file-system-image-by-id/" + auction.getFileDataId();
+        String imageUrl = "http://158.160.138.117:8080/user/file-system-image-by-id/" + auction.getFileDataId();
         Glide.with(context)
                 .load(imageUrl) // Установка URL изображения
                 .apply(RequestOptions.bitmapTransform(new RoundedCorners(26))) // Применение закругленных углов

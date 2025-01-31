@@ -27,6 +27,7 @@ import com.example.gomind.api.RetrofitClient;
 import com.example.gomind.api.UserAPI;
 import com.example.gomind.Auction;
 import com.example.gomind.User;
+import com.example.gomind.sound.SoundManager;
 import com.google.android.material.button.MaterialButton;
 
 import java.io.ByteArrayOutputStream;
@@ -57,7 +58,7 @@ public class UploadFragment extends Fragment {
 
     private MaterialButton bidBtn;
     private EditText edtBid;
-
+    private SoundManager soundManager;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -65,14 +66,17 @@ public class UploadFragment extends Fragment {
         uploadImg = view.findViewById(R.id.upload_ads);
         edtBid = view.findViewById(R.id.edt_bid);
         bidBtn = view.findViewById(R.id.make_bid_btn);
-
+        SoundManager soundManager = SoundManager.getInstance(getContext());
         // Получаем баланс пользователя
         fetchUserBalance();
 
         // Вызов метода для получения максимальной ставки
         fetchMaxBid();
 
-        bidBtn.setOnClickListener(v -> sendAdsRequest());
+        bidBtn.setOnClickListener(v -> {
+            soundManager.playSound(); // Воспроизведение звука
+            sendAdsRequest();
+        });
         uploadImg.setOnClickListener(v -> openGallery());
 
         return view;
