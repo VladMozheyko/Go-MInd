@@ -69,7 +69,8 @@ public class GreetingsActivity extends AppCompatActivity {
             findViewById(R.id.confirmButton).setOnClickListener(v -> {
                 if (confirmCheckBox.isChecked()) {
                     SharedPrefManager.getInstance(this).saveAgreementAccepted();
-                    navigateToLoginFragment();
+                    // Устанавливаем, что пользователь заходил
+                    navigateToAuthentication();
                 } else {
                     Toast.makeText(this, "Необходимо поставить галочку для подтверждения", Toast.LENGTH_SHORT).show();
                 }
@@ -80,6 +81,7 @@ public class GreetingsActivity extends AppCompatActivity {
             Toast.makeText(this, "Ошибка открытия PDF", Toast.LENGTH_SHORT).show();
         }
 
+
         // Инициализация ScaleGestureDetector для обработки масштабирования
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
 
@@ -87,7 +89,11 @@ public class GreetingsActivity extends AppCompatActivity {
         pdfScrollView.setOnTouchListener(this::onTouch);
         horizontalScrollView.setOnTouchListener(this::onTouch);
     }
-
+    private void navigateToAuthentication() {
+        Intent intent = new Intent(this, AuthenticationActivity.class);
+        startActivity(intent);
+        finish();
+    }
     public boolean onTouch(View v, MotionEvent event) {
         // Обработка жестов масштабирования
         scaleGestureDetector.onTouchEvent(event);

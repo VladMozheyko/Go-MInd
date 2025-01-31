@@ -9,109 +9,129 @@ import android.util.Base64;
 import java.io.ByteArrayOutputStream;
 
 public class SharedPrefManager {
-    private static final String SHARED_PREF_NAME = "my_shared_preff";
+    private static final String SHARED_PREF_NAME = "my_shared_prefs";
+    private static final String VISITED_KEY = "IS_VISITED";
+    private static final String AGREEMENT_ACCEPTED_KEY = "AGREEMENT_ACCEPTED";
+    private static final String FIRST_RUN_KEY = "FIRST_RUN";
+
+
     private static SharedPrefManager mInstance;
-    private final String VISITED_KEY = "IS_VISITED";
-    SharedPreferences sp;
-    SharedPreferences.Editor editor;
-    private static final String AGREEMENT_ACCEPTED_KEY = "agreement_accepted";
+    private final SharedPreferences sharedPreferences;
+    private final SharedPreferences.Editor editor;
 
+    private SharedPrefManager(Context context) {
+        sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+    }
+    public SharedPreferences getSharedPreferences() {
+        return sharedPreferences;
+    }
+    public static synchronized SharedPrefManager getInstance(Context context) {
+        if (mInstance == null) {
+            mInstance = new SharedPrefManager(context);
+        }
+        return mInstance;
+    }
+    // Проверяем, первый ли запуск
+    public boolean isFirstRun() {
+        return sharedPreferences.getBoolean(FIRST_RUN_KEY, true);
+    }
 
-    // Сохранение флага принятия соглашения
+    public void setFirstRunDone() {
+        editor.putBoolean(FIRST_RUN_KEY, false);  // Не сбрасывать этот флаг при выходе.
+        editor.apply();
+    }
+
+    public void setPDFShown() {
+        editor.putBoolean(VISITED_KEY, true);
+        editor.apply();
+    }
+
+    public boolean shouldShowPDF() {
+        return !sharedPreferences.getBoolean(VISITED_KEY, false);
+    }
+
+    // --- Флаг принятия соглашения ---
     public void saveAgreementAccepted() {
         editor.putBoolean(AGREEMENT_ACCEPTED_KEY, true);
         editor.apply();
     }
 
-    // Проверка, было ли принято соглашение
     public boolean isAgreementAccepted() {
-        return sp.getBoolean(AGREEMENT_ACCEPTED_KEY, false);
+        return sharedPreferences.getBoolean(AGREEMENT_ACCEPTED_KEY, false);
     }
 
-    private SharedPrefManager(Context mCtx) {
-        this.sp =  mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        editor = sp.edit();
+    // --- Сохранение и получение токена ---
+    public void saveToken(Token token) {
+        if (token != null) {
+            editor.putString("token", token.getAccessToken());
+            editor.putString("refreshToken", token.getRefreshToken());
+            editor.apply();
+        }
     }
 
-    public static synchronized SharedPrefManager getInstance(Context mCtx){
-        if(mInstance == null){
-            mInstance = new SharedPrefManager(mCtx);
+    public Token getToken() {
+        String accessToken = sharedPreferences.getString("token", null);
+        String refreshToken = sharedPreferences.getString("refreshToken", null);
+
+        if (accessToken == null || refreshToken == null) {
+            return null; // Возвращаем null, если нет сохраненного токена
         }
 
-        return mInstance;
+        return new Token(accessToken, refreshToken);
     }
 
-    public void saveVisit(){
-        editor.putBoolean(VISITED_KEY, true);
-        editor.apply();
-    }
-
-
-    public void saveToken(Token token){
-        editor.putString("token", token.getAccessToken());
-        editor.putString("refreshToken", token.getRefreshToken());
-
-        editor.apply();
-    }
-
-    public boolean isVisited(){
-        return sp.getBoolean(VISITED_KEY, false);
-    }
-
-
-    public Token getToken(){
-        return new Token(
-                sp.getString("token", null),
-                sp.getString("refreshToken", null)
-        );
+    public boolean isLoggedIn() {
+        return sharedPreferences.contains("token") && getToken() != null;
     }
 
     public void saveUser(User user) {
-        editor.putString("email", user.getEmail());
-        editor.putString("nickname", user.getNickname());
-        editor.putString("pears", String.valueOf(user.getPears()));
-        editor.putString("count", String.valueOf(user.getCount()));
-        saveToken(user.getToken());
-        editor.apply();
+        if (user != null) {
+            editor.putString("email", user.getEmail());
+            editor.putString("nickname", user.getNickname());
+            editor.putInt("pears", user.getPears());
+            editor.putInt("count", user.getCount());
+            saveToken(user.getToken());
+            editor.apply();
+        }
     }
 
+    public User getUser() {
+        if (!sharedPreferences.contains("email")) {
+            return null;
+        }
 
-    public boolean isLoggedIn(){
-        return !sp.getString("token", "unauthorized").equals("unauthorized");
-    }
-
-    public User getUser(){
-        User user = new User(
-                sp.getString("email", null),
-                sp.getString("nickname", null),
-                Integer.parseInt(sp.getString("pears", "0")),
-                Integer.parseInt(sp.getString("count", "0")),
-                getToken());
-        return user;
+        return new User(
+                sharedPreferences.getString("email", null),
+                sharedPreferences.getString("nickname", null),
+                sharedPreferences.getInt("pears", 0),
+                sharedPreferences.getInt("count", 0),
+                getToken()
+        );
     }
 
     public void saveImage(Bitmap bitmap) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte[] imageBytes = baos.toByteArray();
-        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
-        editor.putString("image", encodedImage);
-        editor.apply();
+        if (bitmap != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            byte[] imageBytes = baos.toByteArray();
+            String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+            editor.putString("image", encodedImage);
+            editor.apply();
+        }
     }
 
     public Bitmap loadImage() {
-
-        String encodedImage = sp.getString("image", null);
-
+        String encodedImage = sharedPreferences.getString("image", null);
         if (encodedImage != null) {
             byte[] imageBytes = Base64.decode(encodedImage, Base64.DEFAULT);
             return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
         }
-
         return null;
     }
 
-    public void clear(){
+    // Очистка данных (например, при выходе из аккаунта)
+    public void clear() {
         editor.clear();
         editor.apply();
     }
