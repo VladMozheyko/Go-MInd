@@ -30,7 +30,16 @@
             android:textSize="20sp"
             android:textColorHint="#8C1E3761"
             android:padding="15dp"
-            android:layout_marginBottom="19dp" />
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/nickname_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_red_light"
+            android:textSize="14sp"
+            android:visibility="gone"
+            android:layout_marginBottom="10dp" />
 
         <EditText
             android:id="@+id/edt_email"
@@ -45,13 +54,24 @@
             android:textColor="@color/main_blue"
             android:textColorHint="#8C1E3761"
             android:padding="15dp"
-            android:layout_marginBottom="19dp"/>
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="5dp"/>
+
+        <TextView
+            android:id="@+id/email_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_red_light"
+            android:textSize="14sp"
+            android:visibility="gone"
+            android:layout_marginBottom="10dp" />
 
         <RelativeLayout
             android:layout_gravity="center_horizontal"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_marginBottom="19dp">
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="5dp">
 
             <EditText
                 android:id="@+id/edt_password"
@@ -64,18 +84,41 @@
                 android:textSize="20sp"
                 android:textColor="@color/main_blue"
                 android:textColorHint="#8C1E3761"
-                android:padding="15dp"/>
+                android:padding="15dp"
+                />
 
             <ImageView
                 android:id="@+id/password_toggle_eye"
                 android:layout_width="45dp"
                 android:layout_height="55dp"
-                android:src="@drawable/img_1"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:layout_marginStart="300dp"
-                android:padding="10dp"/>
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp"
+                android:padding="10dp"
+                android:src="@drawable/eye3"
+                android:visibility="visible"
+                android:contentDescription="Hide password" />
+
+            <ImageView
+                android:id="@+id/password_toggle_eye_open"
+                android:layout_width="45dp"
+                android:layout_height="55dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp"
+                android:padding="10dp"
+                android:src="@drawable/eye4"
+                android:visibility="gone"
+                android:contentDescription="Show password" />
         </RelativeLayout>
+
+        <TextView
+            android:id="@+id/password_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_red_light"
+            android:textSize="14sp"
+            android:visibility="gone"
+            android:layout_marginBottom="10dp" />
+
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/register_btn"
@@ -89,6 +132,8 @@
             android:fontFamily="@font/regular"
             android:textStyle="bold"
             android:textSize="20sp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="5dp"
             android:textAlignment="center" />
 
         <TextView

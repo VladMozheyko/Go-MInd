@@ -2,11 +2,16 @@ package com.example.gomind.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +22,8 @@ import com.example.gomind.SharedPrefManager;
 import com.example.gomind.Token;
 import com.example.gomind.activities.MainActivity;
 import com.example.gomind.api.RetrofitClient;
+import com.example.gomind.validations.EmailValidator;
+import com.example.gomind.validations.PasswordValidator;
 import com.google.android.material.button.MaterialButton;
 
 import org.json.JSONException;
@@ -24,7 +31,6 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import okhttp3.Cookie;
 import okhttp3.HttpUrl;
@@ -35,9 +41,10 @@ import retrofit2.Response;
 
 public class LoginFragment extends Fragment {
 
-    EditText edtPassword;
-    EditText edtEmail;
-    MaterialButton enterBtn;
+    private EditText edtPassword, edtEmail;
+    private MaterialButton enterBtn;
+    private ImageView passwordToggleEye, passwordToggleEyeOpen;
+    private TextView emailErrorText, passwordErrorText;
 
     @Nullable
     @Override
@@ -47,17 +54,114 @@ public class LoginFragment extends Fragment {
         edtPassword = view.findViewById(R.id.edt_password);
         edtEmail = view.findViewById(R.id.edt_email);
         enterBtn = view.findViewById(R.id.enter_btn);
+        passwordToggleEye = view.findViewById(R.id.password_toggle_eye);
+        passwordToggleEyeOpen = view.findViewById(R.id.password_toggle_eye_open);
+        emailErrorText = view.findViewById(R.id.email_error);
+        passwordErrorText = view.findViewById(R.id.password_error);
 
         enterBtn.setOnClickListener(v -> login());
+        enterBtn.setEnabled(false); // Отключаем кнопку входа по умолчанию
+
+        // Устанавливаем скрытый ввод пароля
+        edtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        // Переключение видимости пароля
+        passwordToggleEye.setOnClickListener(v -> togglePasswordVisibility(true));
+        passwordToggleEyeOpen.setOnClickListener(v -> togglePasswordVisibility(false));
+
+        // Добавляем валидацию в реальном времени
+        edtEmail.addTextChangedListener(emailTextWatcher);
+        edtPassword.addTextChangedListener(passwordTextWatcher);
 
         return view;
     }
 
+    private void togglePasswordVisibility(boolean isPasswordHidden) {
+        if (isPasswordHidden) {
+            passwordToggleEye.setVisibility(View.GONE);
+            passwordToggleEyeOpen.setVisibility(View.VISIBLE);
+            edtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+        } else {
+            passwordToggleEye.setVisibility(View.VISIBLE);
+            passwordToggleEyeOpen.setVisibility(View.GONE);
+            edtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        }
+        edtPassword.setSelection(edtPassword.length());
+    }
+
+    private final TextWatcher emailTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            validateEmail();
+            updateLoginButtonState();
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {}
+    };
+
+    private final TextWatcher passwordTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            validatePassword();
+            updateLoginButtonState();
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {}
+    };
+
+    private void validateEmail() {
+        String email = edtEmail.getText().toString().trim();
+        if (email.isEmpty()) {
+            emailErrorText.setText("Email обязателен для заполнения");
+            emailErrorText.setVisibility(View.VISIBLE);
+        } else if (!EmailValidator.isValidEmail(email)) {
+            emailErrorText.setText("Введите корректный email");
+            emailErrorText.setVisibility(View.VISIBLE);
+        } else {
+            emailErrorText.setVisibility(View.GONE);
+        }
+    }
+
+    private void validatePassword() {
+        String password = edtPassword.getText().toString().trim();
+        if (password.isEmpty()) {
+            passwordErrorText.setText("Пароль обязателен для заполнения");
+            passwordErrorText.setVisibility(View.VISIBLE);
+        } else if (!PasswordValidator.isValidPassword(password)) {
+            passwordErrorText.setText("Пароль должен содержать от 6 до 20 символов");
+            passwordErrorText.setVisibility(View.VISIBLE);
+        } else {
+            passwordErrorText.setVisibility(View.GONE);
+        }
+    }
+
+    private void updateLoginButtonState() {
+        boolean isEmailValid = EmailValidator.isValidEmail(edtEmail.getText().toString().trim());
+        boolean isPasswordValid = PasswordValidator.isValidPassword(edtPassword.getText().toString().trim());
+
+        enterBtn.setEnabled(isEmailValid && isPasswordValid);
+    }
+
     private void login() {
+        String email = edtEmail.getText().toString().trim();
+        String password = edtPassword.getText().toString().trim();
+
+        if (!EmailValidator.isValidEmail(email) || !PasswordValidator.isValidPassword(password)) {
+            return;
+        }
+
         try {
             JSONObject paramObject = new JSONObject();
-            paramObject.put("password", edtPassword.getText().toString().trim());
-            paramObject.put("email", edtEmail.getText().toString().trim());
+            paramObject.put("email", email);
+            paramObject.put("password", password);
 
             Call<ResponseBody> call = RetrofitClient.getInstance(getActivity()).getAuthApi()
                     .login(paramObject.toString());
@@ -65,41 +169,36 @@ public class LoginFragment extends Fragment {
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
-                    try {
-                        if (response.code() == 200) {
-                            // Если логин успешен, сохраняем токены
-                            Map<HttpUrl, List<Cookie>> cookieStore = RetrofitClient.cookieManager.getCookieStore();
-                            HttpUrl url = HttpUrl.parse("http://31.129.102.70:8081/authentication/login");
+                    if (response.code() == 200) {
+                        Map<HttpUrl, List<Cookie>> cookieStore = RetrofitClient.cookieManager.getCookieStore();
+                        HttpUrl url = HttpUrl.parse("http://10.0.2.2:8081/authentication/login");
 
-                            if (cookieStore.containsKey(url)) {
-                                List<Cookie> cookies = cookieStore.get(url);
-                                String jwtCookie = null, refreshJwtCookie = null;
+                        if (cookieStore.containsKey(url)) {
+                            List<Cookie> cookies = cookieStore.get(url);
+                            String jwtCookie = null, refreshJwtCookie = null;
 
-                                for (Cookie cookie : cookies) {
-                                    if ("jwt-cookie".equals(cookie.name())) {
-                                        jwtCookie = cookie.value();
-                                    } else if ("refresh-jwt-cookie".equals(cookie.name())) {
-                                        refreshJwtCookie = cookie.value();
-                                    }
+                            for (Cookie cookie : cookies) {
+                                if ("jwt-cookie".equals(cookie.name())) {
+                                    jwtCookie = cookie.value();
+                                } else if ("refresh-jwt-cookie".equals(cookie.name())) {
+                                    refreshJwtCookie = cookie.value();
                                 }
-
-                                // Сохраняем токены
-                                SharedPrefManager.getInstance(getActivity()).saveToken(new Token(jwtCookie, refreshJwtCookie));
                             }
 
-                            // После успешного входа переходим в MainActivity
-                            Intent intent = new Intent(getActivity(), MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
+                            SharedPrefManager.getInstance(getActivity()).saveToken(new Token(jwtCookie, refreshJwtCookie));
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+
+                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(getActivity(), "Неверный email или пароль", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                    // Обработка ошибки
+                    Toast.makeText(getActivity(), "Ошибка подключения", Toast.LENGTH_SHORT).show();
                 }
             });
 
