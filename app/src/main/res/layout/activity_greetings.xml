@@ -4,65 +4,63 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.GreetingsActivity">
+    tools:context=".activities.GreetingsActivity"
+    android:background="@color/pdf">
 
-    <ScrollView
-        android:id="@+id/verticalScrollView"
+    <!-- Контейнер для PDF с чёрной рамкой -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/confirmationLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Горизонтальный ScrollView для перемещения -->
-        <HorizontalScrollView
-            android:id="@+id/horizontalScrollView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+    android:background="@color/pdf"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toTopOf="@+id/confirmationLayout"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Контейнер для страниц PDF -->
-            <LinearLayout
-                android:id="@+id/pdfContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </HorizontalScrollView>
-    </ScrollView>
+    <com.github.barteksc.pdfviewer.PDFView
+        android:id="@+id/pdfContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/pdf"/>
+</androidx.cardview.widget.CardView>
 
+    <!-- Контейнер для подтверждения (белая панель) -->
+<androidx.constraintlayout.widget.ConstraintLayout
+android:id="@+id/confirmationLayout"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:background="@android:color/white"
+android:padding="16dp"
+app:layout_constraintBottom_toBottomOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Контейнер для подтверждения согласия -->
-    <LinearLayout
-        android:id="@+id/confirmationLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:padding="16dp">
+<!-- Чекбокс для подтверждения -->
+<CheckBox
+    android:id="@+id/confirmCheckBox"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/confirm_agreement"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Чекбокс для подтверждения -->
-        <CheckBox
-            android:id="@+id/confirmCheckBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Я подтверждаю согласие"
-            android:layout_gravity="center_vertical" />
-
-        <!-- Кнопка подтверждения -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/confirmButton"
-            android:layout_height="48dp"
-            android:layout_width="160dp"
-            android:layout_marginLeft="15dp"
-            android:layout_gravity="center_vertical"
-            android:text="Подтвердить"
-            android:background="@drawable/reg_button"
-            app:iconTintMode="multiply"
-            app:backgroundTint="@null"
-            android:fontFamily="@font/regular"
-            android:textStyle="bold"
-            android:textSize="15sp"/>
-    </LinearLayout>
+<!-- Кнопка подтверждения со стилем -->
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/confirmButton"
+    android:layout_width="160dp"
+    android:layout_height="48dp"
+    android:background="@drawable/reg_button"
+    android:fontFamily="@font/regular"
+    android:text="Подтвердить"
+    android:textSize="15sp"
+    android:textStyle="bold"
+    app:backgroundTint="@null"
+    app:iconTintMode="multiply"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

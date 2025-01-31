@@ -66,13 +66,13 @@ public class LeadersFragment extends Fragment {
                     id = response.body();
                     Log.d("Ид ", " " + id);
                     Glide.with(requireActivity())
-                            .load("http://31.129.102.70:8081/user/file-system-image-by-id/" + id)
+                            .load("http://10.0.2.2:8081/user/file-system-image-by-id/" + id)
                             .apply(RequestOptions.bitmapTransform(new RoundedCorners(26)))
                             .into(imgAds);
                 }
                 else {
                     Glide.with(requireActivity())
-                            .load("http://31.129.102.70:8081/user/file-system-image-by-id/" + 4)
+                            .load("http://10.0.2.2:8081/user/file-system-image-by-id/" + 4)
                             .apply(RequestOptions.bitmapTransform(new RoundedCorners(26)))
                             .into(imgAds);
                 }

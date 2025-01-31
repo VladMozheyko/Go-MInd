@@ -3,6 +3,7 @@ package com.example.gomind.fragments;
 import static com.example.gomind.Utils.user;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -63,12 +64,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         txtPoints = view.findViewById(R.id.txt_points);
 
         addImageBtn = view.findViewById(R.id.add_image_btn);
-        auctionBtn = view.findViewById(R.id.auction_btn);
         balanceBtn = view.findViewById(R.id.money);
         buypearsBtn = view.findViewById(R.id.byu_fruits);
 
         addImageBtn.setOnClickListener(this);
-        auctionBtn.setOnClickListener(this);
         balanceBtn.setOnClickListener(this);
         buypearsBtn.setOnClickListener(this);
         exitBtn = view.findViewById(R.id.exit_btn);
@@ -81,12 +80,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         return view;
     }
 
+    //message
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Запуск обновления данных с периодичностью 30 минут
-        scheduleDataUpdate();
 
         edtEmail.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
@@ -95,17 +92,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             }
         });
     }
-    private void scheduleDataUpdate() {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                // В этом месте обновляем данные
-                getProfile();
-                getPoints();
-            }
-        }, 0, 5, TimeUnit.MINUTES);  // 0 - начнем сразу, 30 - интервал в минутах
-    }
+
     private void showEmailConfirmationDialog() {
         EmailConfirmationFragment dialogFragment = new EmailConfirmationFragment();
         dialogFragment.setEmailChangeListener(new EmailConfirmationFragment.OnEmailChangeListener() {
@@ -233,13 +220,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
             transaction.commit();
 
-        } else if (id == R.id.auction_btn) {
-            FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            Fragment auctionFragment = new AuctionFragment();
-            transaction.replace(R.id.main_container, auctionFragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
+
         } else if (id == R.id.money) {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -262,11 +243,18 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
     private void logout() {
-        // Удаляем данные пользователя
-        SharedPrefManager.getInstance(getActivity()).clear();
+        // Получаем SharedPreferences.Editor через SharedPrefManager
+        SharedPreferences.Editor editor = SharedPrefManager.getInstance(getActivity()).getSharedPreferences().edit();
 
+        // Удаляем данные, которые не касаются флага первого запуска
+        editor.remove("token");  // Пример удаления только токена
+        // Тут можешь очистить другие данные, которые нужно удалить
+        editor.apply();
+
+        // Завершаем активность
         getActivity().finishAffinity();
     }
+
     @Override
     public void onStop() {
         super.onStop();

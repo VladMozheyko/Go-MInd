@@ -105,7 +105,7 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
                 if (response.body() != null) {
                     id = response.body();
                     Log.d("Ид ", " " + id);
-                    String imageUrl = "http://31.129.102.70:8081/user/file-system-image-by-id/" + id;
+                    String imageUrl = "http://10.0.2.2:8081/user/file-system-image-by-id/" + id;
 
                     // Загрузка изображения с закругленными углами
                     Glide.with(requireActivity())
@@ -113,7 +113,7 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
                             .apply(RequestOptions.bitmapTransform(new RoundedCorners(26))) // Установите радиус закругления
                             .into(imgAds);
                 } else {
-                    String imageUrl = "http://31.129.102.70:8081/user/file-system-image-by-id/" + 4;
+                    String imageUrl = "http://10.0.2.2:8081/user/file-system-image-by-id/" + 4;
 
                     // Загрузка изображения с закругленными углами
                     Glide.with(requireActivity())
